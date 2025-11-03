@@ -1,0 +1,40 @@
+﻿{
+    "items":  [
+                  {
+                      "id":  "scalp-perp-15m",
+                      "name":  "Scalp Perp (15m)",
+                      "description":  "15m scalp strategy",
+                      "category":  "perp",
+                      "status":  "live",
+                      "markets":  "BTCUSDT ETHUSDT",
+                      "lastHeartbeat":  null
+                  },
+                  {
+                      "id":  "mtf-eth-1h-6h-16h",
+                      "name":  "MTF ETH (1h/6h/16h)",
+                      "description":  "1h signals with 6h+16h regimes",
+                      "category":  "perp",
+                      "status":  "live",
+                      "markets":  "ETHUSDT",
+                      "lastHeartbeat":  "2025-10-21T17:35:31.814130+00:00"
+                  },
+                  {
+                      "id":  "swing-perp-16h",
+                      "name":  "Swing Perp (16h regime)",
+                      "description":  "1h signals, 16h regime filter",
+                      "category":  "perp",
+                      "status":  "live",
+                      "markets":  "BTCUSDT ETHUSDT SOLUSDT",
+                      "lastHeartbeat":  "2025-10-21T17:35:32.725404+00:00"
+                  },
+                  {
+                      "id":  "mtf-btc-1h-6h-16h",
+                      "name":  "MTF BTC (1h/6h/16h)",
+                      "description":  "1h signals with 6h+16h regimes",
+                      "category":  "perp",
+                      "status":  "live",
+                      "markets":  "BTCUSDT",
+                      "lastHeartbeat":  "2025-10-21T17:35:45.477547+00:00"
+                  }
+              ]
+}

@@ -1,0 +1,12 @@
+# Alertmanager configuration
+# Replace the webhook url below with your RequestBin/ngrok/test endpoint to receive alerts.
+route:
+  receiver: 'default'
+receivers:
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://discord-relay:8081/alert'
+        send_resolved: true
+
+# Example: to use a RequestBin endpoint, create the bin and replace the URL above.
+# For local testing, run a small HTTP server (e.g. Python or ngrok tunnel) and use its URL here.

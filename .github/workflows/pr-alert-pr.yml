@@ -1,0 +1,54 @@
+name: PR Alert Check (pull_request)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-alert-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start monitoring stack
+        working-directory: infra
+        run: |
+          docker compose up -d --build alertmanager discord-relay
+
+      - name: Wait for alertmanager
+        working-directory: infra
+        run: |
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:9093/-/healthy >/dev/null 2>&1; then
+              echo "alertmanager healthy"; exit 0
+            fi
+            echo "waiting for alertmanager... ($i)"
+            sleep 2
+          done
+          echo "alertmanager did not become healthy"; docker compose logs --tail 200 alertmanager; exit 1
+
+      - name: Send synthetic alert
+        working-directory: infra
+        run: |
+          pwsh -File ./alert_test.ps1 -SendSyntheticAlert
+
+      - name: Verify discord-relay logs (container exec + retry)
+        working-directory: infra
+        run: |
+          set -e
+          for i in {1..5}; do
+            # Try to grep the container's stdout (fd 1) for the synthetic alert string
+            if docker compose exec -T discord-relay sh -lc 'grep -i "SyntheticCopyError" /proc/1/fd/1 >/dev/null 2>&1' ; then
+              echo "Found SyntheticCopyError in relay logs (inside container)"; exit 0
+            fi
+            echo "Not found yet, retry $i/5..."; sleep 3
+          done
+          echo "Synthetic alert not observed in relay logs (container)"; docker compose logs discord-relay; exit 1
+
+      - name: Tear down
+        if: always()
+        working-directory: infra
+        run: |
+          docker compose down --remove-orphans -v || true

@@ -1,0 +1,10 @@
+[
+  "mtf-btc-1h-6h-16h","mtf-eth-1h-6h-16h","mtf-sol-1h-6h-16h","mtf-avax-1h-6h-16h",
+  "mtf-xrp-1h-6h-16h","mtf-link-1h-6h-16h","mtf-xmr-1h-6h-16h","mtf-pump-1h-6h-16h",
+
+  "swing-btc-16h","swing-eth-16h","swing-sol-16h","swing-avax-16h",
+  "swing-xrp-16h","swing-link-16h","swing-xmr-16h","swing-pump-16h",
+  "swing-aster-16h","swing-bnb-16h",
+
+  "levx-btc","levx-eth","levx-sol","levx-avax","levx-xrp","levx-link","levx-xmr","levx-pump"
+]

@@ -1,0 +1,46 @@
+# Local env files & secrets
+infra/.env
+.env
+.env.*
+*.key
+*.pem
+
+# Python caches & artifacts
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Node modules & build (frontend)
+web/node_modules/
+web/.next/
+web/out/
+node_modules/
+
+# Docker & logs
+*.log
+docker-compose.override.yml
+
+# IDE & editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary & OS
+*.tmp
+*.bak
+Thumbs.db
+
+# Export artifacts
+infra/heyanon-platform-clean.zip
+infra/staging/

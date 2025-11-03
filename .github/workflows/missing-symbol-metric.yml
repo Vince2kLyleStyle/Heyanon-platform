@@ -1,0 +1,59 @@
+name: Missing Symbol Metric E2E
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  missing-symbol-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start stack: prometheus + alertmanager + discord-relay + copy-executor + api
+        working-directory: infra
+        run: |
+          docker compose up -d --build prometheus alertmanager discord-relay copy-executor api
+
+      - name: Wait for Prometheus
+        working-directory: infra
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:9090/-/ready >/dev/null 2>&1; then
+              echo "prometheus ready"; exit 0
+            fi
+            echo "waiting for prometheus... ($i)"
+            sleep 2
+          done
+          echo "prometheus did not become ready"; docker compose logs --tail 200 prometheus; exit 1
+
+      - name: Post synthetic unknown-symbol trade
+        working-directory: infra
+        run: |
+          # post via curl to API; use a short-lived strategyId that exists in test fixtures
+          TS=$(date -u +%s%3N)
+          cat <<EOF > /tmp/ms_trade.json
+          {"strategyId":"mtf-btc-1h-6h-16h","symbol":"UNKNOWN-TEST","side":"BUY","qty":0.001,"price":12345,"ts":${TS},"tradeId":"ms-ci-1"}
+          EOF
+          curl -s -X POST "http://localhost:8000/v1/events/trade" -H "Content-Type: application/json" -d @/tmp/ms_trade.json || true
+
+      - name: Poll Prometheus for missing-symbol metric (docker exec)
+        working-directory: infra
+        run: |
+          set -e
+          for i in {1..10}; do
+            v=$(docker compose exec -T prometheus sh -lc 'wget -qO- "http://localhost:9090/api/v1/query?query=sum(rate(copy_missing_symbol_rules_total[2m]))"' | jq -r '.data.result[0].value[1] // "0"') || v=0
+            echo "rate=${v}"
+            awk "BEGIN{if (${v} > 0) exit 0; exit 1}" && echo "metric observed" && exit 0 || true
+            sleep 5
+          done
+          echo "Metric not observed"; docker compose logs --tail 200 prometheus || true; exit 1
+
+      - name: Tear down
+        if: always()
+        working-directory: infra
+        run: |
+          docker compose down --remove-orphans -v || true

@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    container_name: heyanon_postgres_staging
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data_staging:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    container_name: heyanon_redis_staging
+  api:
+    build:
+      context: ../api
+    container_name: heyanon_api_staging
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/postgres
+      REDIS_URL: redis://redis:6379/0
+      HEYANON_API_KEY: ${HEYANON_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+  web:
+    build:
+      context: ../web
+    container_name: heyanon_web_staging
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: heyanon_prometheus_staging
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus_rules.yml:/etc/prometheus/prometheus_rules.yml:ro
+    ports:
+      - "9090:9090"
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: heyanon_alertmanager_staging
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+
+volumes:
+  postgres_data_staging:

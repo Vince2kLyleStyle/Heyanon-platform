@@ -1,0 +1,84 @@
+﻿{
+    "openapi":  "3.1.0",
+    "info":  {
+                 "title":  "HeyAnon API",
+                 "version":  "0.1.0"
+             },
+    "paths":  {
+                  "/health":  {
+                                  "get":  "@{summary=Health; operationId=health_health_get; responses=}"
+                              },
+                  "/v1/events/trade":  {
+                                           "post":  "@{tags=System.Object[]; summary=Post Trade; operationId=post_trade_v1_events_trade_post; parameters=System.Object[]; requestBody=; responses=}"
+                                       },
+                  "/v1/events/position":  {
+                                              "post":  "@{tags=System.Object[]; summary=Post Position; operationId=post_position_v1_events_position_post; parameters=System.Object[]; requestBody=; responses=}"
+                                          },
+                  "/v1/events/pnl":  {
+                                         "post":  "@{tags=System.Object[]; summary=Post Pnl; operationId=post_pnl_v1_events_pnl_post; parameters=System.Object[]; requestBody=; responses=}"
+                                     },
+                  "/v1/events/heartbeat":  {
+                                               "post":  "@{tags=System.Object[]; summary=Post Heartbeat; operationId=post_heartbeat_v1_events_heartbeat_post; parameters=System.Object[]; requestBody=; responses=}"
+                                           },
+                  "/v1/strategies":  {
+                                         "get":  "@{tags=System.Object[]; summary=List Strategies; operationId=list_strategies_v1_strategies_get; responses=}"
+                                     },
+                  "/v1/strategies/{strategy_id}":  {
+                                                       "get":  "@{tags=System.Object[]; summary=Get Strategy; operationId=get_strategy_v1_strategies__strategy_id__get; parameters=System.Object[]; responses=}"
+                                                   },
+                  "/v1/strategies/{strategy_id}/trades":  {
+                                                              "get":  "@{tags=System.Object[]; summary=Get Trades; operationId=get_trades_v1_strategies__strategy_id__trades_get; parameters=System.Object[]; responses=}"
+                                                          },
+                  "/v1/strategies/{strategy_id}/positions":  {
+                                                                 "get":  "@{tags=System.Object[]; summary=Get Positions; operationId=get_positions_v1_strategies__strategy_id__positions_get; parameters=System.Object[]; responses=}"
+                                                             },
+                  "/v1/strategies/{strategy_id}/performance":  {
+                                                                   "get":  "@{tags=System.Object[]; summary=Get Performance; operationId=get_performance_v1_strategies__strategy_id__performance_get; parameters=System.Object[]; responses=}"
+                                                               },
+                  "/v1/strategies/{strategy_id}/trades.csv":  {
+                                                                  "get":  "@{tags=System.Object[]; summary=Export Trades Csv; operationId=export_trades_csv_v1_strategies__strategy_id__trades_csv_get; parameters=System.Object[]; responses=}"
+                                                              },
+                  "/v1/leaderboard":  {
+                                          "get":  "@{tags=System.Object[]; summary=Leaderboard; operationId=leaderboard_v1_leaderboard_get; parameters=System.Object[]; responses=}"
+                                      },
+                  "/v1/strategies/{strategy_id}/heartbeat":  {
+                                                                 "post":  "@{tags=System.Object[]; summary=Post Heartbeat; operationId=post_heartbeat_v1_strategies__strategy_id__heartbeat_post; parameters=System.Object[]; requestBody=; responses=}"
+                                                             },
+                  "/metrics":  {
+                                   "get":  "@{summary=Get Metrics; operationId=get_metrics_metrics_get; responses=}"
+                               },
+                  "/v1/copy/subscribe":  {
+                                             "post":  "@{tags=System.Object[]; summary=Create Subscriber; operationId=create_subscriber_v1_copy_subscribe_post; requestBody=; responses=}"
+                                         },
+                  "/v1/copy/subscribers":  {
+                                               "get":  "@{tags=System.Object[]; summary=List Subscribers; operationId=list_subscribers_v1_copy_subscribers_get; parameters=System.Object[]; responses=}"
+                                           },
+                  "/v1/copy/subscribers/{subscriber_id}":  {
+                                                               "patch":  "@{tags=System.Object[]; summary=Update Subscriber; operationId=update_subscriber_v1_copy_subscribers__subscriber_id__patch; parameters=System.Object[]; requestBody=; responses=}"
+                                                           },
+                  "/v1/copy/executions":  {
+                                              "get":  "@{tags=System.Object[]; summary=List Executions; operationId=list_executions_v1_copy_executions_get; parameters=System.Object[]; responses=}",
+                                              "post":  "@{tags=System.Object[]; summary=Create Execution; operationId=create_execution_v1_copy_executions_post; requestBody=; responses=}"
+                                          },
+                  "/v1/copy/executions.csv":  {
+                                                  "get":  "@{tags=System.Object[]; summary=Export Executions Csv; operationId=export_executions_csv_v1_copy_executions_csv_get; parameters=System.Object[]; responses=}"
+                                              }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "ExecutionIn":  "@{properties=; type=object; required=System.Object[]; title=ExecutionIn}",
+                                       "ExecutionOut":  "@{properties=; type=object; required=System.Object[]; title=ExecutionOut}",
+                                       "ExecutionPage":  "@{properties=; type=object; required=System.Object[]; title=ExecutionPage}",
+                                       "HTTPValidationError":  "@{properties=; type=object; title=HTTPValidationError}",
+                                       "PnLAttribution":  "@{properties=; type=object; required=System.Object[]; title=PnLAttribution}",
+                                       "PositionSnapshot":  "@{properties=; type=object; required=System.Object[]; title=PositionSnapshot}",
+                                       "Side":  "@{type=string; enum=System.Object[]; title=Side}",
+                                       "SubscriberIn":  "@{properties=; type=object; required=System.Object[]; title=SubscriberIn}",
+                                       "SubscriberOut":  "@{properties=; type=object; required=System.Object[]; title=SubscriberOut}",
+                                       "TradeEvent":  "@{properties=; type=object; required=System.Object[]; title=TradeEvent}",
+                                       "TradeStatus":  "@{type=string; enum=System.Object[]; title=TradeStatus}",
+                                       "TradeType":  "@{type=string; enum=System.Object[]; title=TradeType}",
+                                       "ValidationError":  "@{properties=; type=object; required=System.Object[]; title=ValidationError}"
+                                   }
+                   }
+}

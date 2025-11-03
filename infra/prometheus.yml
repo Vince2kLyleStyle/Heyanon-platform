@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'heyanon_api'
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: /metrics
+    scheme: http
+  - job_name: 'copy_executor'
+    static_configs:
+      - targets: ['copy-executor:9102']
+    metrics_path: /metrics
+    scheme: http
+  # per-strategy scrape jobs removed; single multi-strategy copy-executor exposes metrics on 9102
+ 
+rule_files:
+  - "/etc/prometheus/prometheus_rules.yml"
+  - "/etc/prometheus/prometheus_rules_new.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']

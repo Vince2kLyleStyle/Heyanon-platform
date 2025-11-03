@@ -1,0 +1,91 @@
+name: Runner sanity
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'infra/**'
+
+jobs:
+  runner-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        case: [strict-fail, strict-pass]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (jq, python yaml)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq python3 python3-venv python3-pip
+          python3 -m pip install pyyaml
+
+      - name: Prepare secrets for case
+        id: prep
+        run: |
+          cp infra/bot-secrets.json /tmp/bot-secrets.full.json
+          if [ "${{ matrix.case }}" = "strict-fail" ]; then
+            # remove one strategy's key to simulate missing secret
+            python3 - <<'PY'
+import json
+f='/tmp/bot-secrets.full.json'
+data=json.load(open(f))
+keys=list(data.keys())
+if keys:
+    k=keys[0]
+    data[k]['HEYANON_API_KEY']=''
+json.dump(data, open('/tmp/bot-secrets.missing.json','w'), indent=2)
+print('wrote /tmp/bot-secrets.missing.json')
+PY
+          fi
+
+      - name: Run Bash runner (case)
+        run: |
+          chmod +x infra/multi-bot-runner.sh
+          if [ "${{ matrix.case }}" = "strict-fail" ]; then
+            set -o pipefail
+            if infra/multi-bot-runner.sh --dry-run --strict --secrets=/tmp/bot-secrets.missing.json --out=infra/docker-compose.bots.yml > /tmp/bash.out 2>&1; then
+              echo "Expected failure but script succeeded"; cat /tmp/bash.out; exit 2
+            else
+              echo "Bash runner failed as expected"; cat /tmp/bash.out
+            fi
+          else
+            # strict-pass: provide HEYANON_API_KEY env and expect success
+            export HEYANON_API_KEY=fakekey
+            infra/multi-bot-runner.sh --dry-run --strict --secrets=/tmp/bot-secrets.full.json --out=infra/docker-compose.bots.yml > /tmp/bash.out 2>&1
+            cat /tmp/bash.out
+          fi
+
+      - name: Run PowerShell runner (case)
+        shell: pwsh
+        run: |
+          if ($Env:matrix_case -eq $null) { $Env:matrix_case = "${{ matrix.case }}" }
+          if ($Env:matrix_case -eq 'strict-fail') {
+            pwsh -NoProfile -File infra/multi-bot-runner.ps1 -DryRun -Strict -SecretsPath /tmp/bot-secrets.missing.json; if ($LASTEXITCODE -eq 0) { Write-Error 'Expected PS runner to fail but it succeeded'; exit 2 }
+          } else {
+            $Env:HEYANON_API_KEY='fakekey'
+            pwsh -NoProfile -File infra/multi-bot-runner.ps1 -DryRun -Strict -SecretsPath /tmp/bot-secrets.full.json; if ($LASTEXITCODE -ne 0) { Write-Error 'PS runner failed unexpectedly'; exit 2 }
+          }
+
+      - name: Parse and validate generated YAML services == strategies.json (only for pass case)
+        if: matrix.case == 'strict-pass'
+        run: |
+          python3 - <<'PY'
+import yaml, json
+with open('infra/ci/strategies.json') as f:
+    strategies=json.load(f)
+with open('infra/docker-compose.bots.yml') as f:
+    doc=yaml.safe_load(f)
+services=sorted(list(doc.get('services',{}).keys()))
+expected=sorted(['bot-'+s.replace('/','-').replace(' ','-') for s in strategies])
+print('services',services)
+print('expected',expected)
+if services!=expected:
+    print('Mismatch between generated services and strategies.json')
+    print('services:', services)
+    print('expected:', expected)
+    raise SystemExit(3)
+print('YAML services match strategies.json')
+PY

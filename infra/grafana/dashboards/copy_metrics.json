@@ -1,0 +1,67 @@
+{
+  "title": "Copy Executor Metrics",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Copy Success (5m)",
+      "targets": [ { "expr": "sum(rate(copy_dispatch_total{result=\"ok\"}[5m]))" } ]
+    },
+    {
+      "type": "stat",
+      "title": "Copy Errors (5m)",
+      "targets": [ { "expr": "sum(rate(copy_dispatch_total{result=\"error\"}[5m]))" } ]
+    },
+    {
+      "type": "stat",
+      "title": "API Error Rate (5m)",
+  "targets": [ { "expr": "sum(rate(heyanon_requests_total{status=~\"5..\"}[5m])) / sum(rate(heyanon_requests_total[5m]))" } ],
+  "links": [ { "title": "Open in Prometheus", "url": "http://localhost:9090/graph?g0.expr=sum%28rate%28heyanon_requests_total%7Bstatus%3D~%225..%22%7D%5B5m%5D%29%29%20%2F%20sum%28rate%28heyanon_requests_total%5B5m%5D%29%29&g0.tab=0", "targetBlank": true } ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.015 } ] } } }
+    },
+    {
+      "type": "stat",
+      "title": "Copy Error Rate (5m)",
+      "targets": [ { "expr": "sum(rate(copy_dispatch_total{result=\"error\"}[5m])) / sum(rate(copy_dispatch_total[5m]))" } ],
+      "links": [ { "title": "Open in Prometheus", "url": "http://localhost:9090/graph?g0.expr=sum%28rate%28copy_dispatch_total%7Bresult%3D%5C%22error%5C%22%7D%5B5m%5D%29%29%20%2F%20sum%28rate%28copy_dispatch_total%5B5m%5D%29%29&g0.tab=0", "targetBlank": true } ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.02 } ] } } }
+    },
+    {
+      "type": "graph",
+      "title": "Copy p95 Latency (5m)",
+      "targets": [ { "expr": "histogram_quantile(0.95, sum(rate(copy_dispatch_latency_seconds_bucket[5m])) by (le))" } ],
+      "yaxes": [{ "format": "s" }, { "format": "short" }]
+    },
+    {
+      "type": "table",
+      "title": "Alerts (Active)",
+      "targets": [ { "expr": "ALERTS{alertstate=\"firing\"}" } ]
+    },
+    {
+      "type": "table",
+      "title": "Missing Symbol Rules (rate 10m)",
+      "targets": [ { "expr": "sum(rate(copy_missing_symbol_rules_total[10m])) by (symbol)" } ],
+      "links": [ { "title": "Open in Prometheus", "url": "http://localhost:9090/graph?g0.expr=sum%28rate%28copy_missing_symbol_rules_total%5B10m%5D%29%29%20by%20%28symbol%29&g0.tab=0", "targetBlank": true } ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "red", "value": 0.05 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Missing Symbol Rate (10m)",
+      "targets": [ { "expr": "sum(rate(copy_missing_symbol_rules_total[10m]))" } ],
+      "links": [ { "title": "Open in Prometheus", "url": "http://localhost:9090/graph?g0.expr=sum%28rate%28copy_missing_symbol_rules_total%5B10m%5D%29%29&g0.tab=0", "targetBlank": true } ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 } ] } } }
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

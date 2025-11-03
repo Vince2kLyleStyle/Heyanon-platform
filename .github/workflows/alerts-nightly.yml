@@ -1,0 +1,55 @@
+name: Alerts Nightly
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  alerts-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Start staging stack
+        working-directory: infra
+        run: |
+          docker compose -f docker-compose.staging.yml up -d --build
+
+      - name: Wait for api
+        working-directory: infra
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "api healthy"; exit 0
+            fi
+            echo "waiting for api... ($i)"
+            sleep 2
+          done
+          echo "api did not become healthy"; docker compose logs --tail 200 api; exit 1
+
+      - name: Run alert_test (synthetic)
+        working-directory: infra
+        run: |
+          pwsh -File ./alert_test.ps1 -SendSyntheticAlert
+
+      # SpamErrors step removed for CI noisiness; use manual run if needed.
+
+      - name: Collect logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alerts-nightly-logs
+          path: infra/*.log
+
+      - name: Tear down staging
+        if: always()
+        working-directory: infra
+        run: |
+          docker compose -f docker-compose.staging.yml down --remove-orphans -v

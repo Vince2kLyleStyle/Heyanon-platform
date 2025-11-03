@@ -1,0 +1,70 @@
+groups:
+  - name: heyanon.rules
+    rules:
+      - alert: ApiHighErrorRate
+        expr: |
+          sum(rate(heyanon_requests_total{status=~"5.."}[5m]))
+            / sum(rate(heyanon_requests_total[5m])) > 0.015
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API error rate >1.5% (5m)"
+
+      - alert: ApiHighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum(rate(heyanon_request_latency_seconds_bucket[5m])) by (le, path)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API p95 latency >500ms (5m)"
+
+      - alert: StaleHeartbeat
+        expr: |
+          (time() - max(heyanon_strategy_last_heartbeat_unixtime) by (strategy_id)) > 120
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Strategy {{ $labels.strategy_id }} heartbeat stale >120s"
+
+      - alert: CopyExecutorHighErrorRate
+        expr: |
+          sum(rate(copy_dispatch_errors_total[5m])) by (strategy_id)
+            /
+          sum(rate(copy_dispatch_total[5m])) by (strategy_id) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Copy-executor error rate >2% (5m) for {{ $labels.strategy_id }}"
+
+      - alert: CopyExecutorHighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(copy_dispatch_latency_seconds_bucket[5m])) by (le)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Copy-executor p95 latency >1.0s (5m)"
+
+      - alert: CopyDisabled
+        expr: copy_executor_disabled == 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Copy executor disabled (DISABLE_COPY=1) for >10m"
+
+      - alert: MissingSymbolRuleWarn
+        expr: |
+          sum(rate(copy_missing_symbol_rules_total[10m])) by (symbol) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Missing symbol rules warn: symbol={{ $labels.symbol }} exceeded missing-rule rate over 10m"

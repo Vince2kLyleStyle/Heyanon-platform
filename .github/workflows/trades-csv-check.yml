@@ -1,0 +1,98 @@
+name: Trades CSV Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  trades-csv-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('infra/validate_*.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set strategy id
+        run: echo "STRATEGY_ID=${{ github.event.inputs.strategyId || 'mtf-btc-1h-6h-16h' }}" >> $GITHUB_ENV
+
+      - name: Start API
+        working-directory: infra
+        run: |
+          docker compose up -d --build api
+
+      - name: Wait for API
+        working-directory: infra
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "api healthy"; exit 0
+            fi
+            echo "waiting for api... ($i)"; sleep 2
+          done
+          echo "api did not become healthy"; docker compose logs --tail 200 api; exit 1
+
+      - name: Seed test trades
+        working-directory: infra
+        shell: bash
+        run: |
+          # run seeder; fail the job if seeding fails so CI surfaces upstream errors
+          python e2e_test.py
+
+      - name: Download trades CSV
+        working-directory: infra
+        run: |
+          STRAT=${STRATEGY_ID:-mtf-btc-1h-6h-16h}
+          URL="http://localhost:8000/v1/strategies/${STRAT}/trades.csv?sort=time&dir=desc&start=2020-01-01T00:00:00&chunk_size=100"
+          echo "Downloading $URL"
+          # small sleep to give DB/seed a moment on fresh runners
+          sleep 2
+          # retry a few times to avoid flakes from cold starts
+          for i in 1 2 3; do
+            curl -s "$URL" -o /tmp/trades.csv && break || sleep 2
+          done
+          # extract first non-empty line and the second line
+          first_non_empty=$(awk 'NF{print; exit}' /tmp/trades.csv || true)
+          second_line=$(sed -n '2p' /tmp/trades.csv || true)
+          echo "first_non_empty=$first_non_empty"
+          echo "second_line=$second_line"
+          if [ -z "$first_non_empty" ]; then echo "CSV empty or not produced"; docker compose logs --tail 200 api; exit 1; fi
+          if [[ "$first_non_empty" != \#* ]]; then echo "First non-empty line does not start with #"; cat /tmp/trades.csv; exit 1; fi
+          if [ -z "$second_line" ]; then echo "CSV header missing"; cat /tmp/trades.csv; exit 1; fi
+          # ensure there's at least one data row after the header (line 3+)
+          data_line=$(sed -n '3,$p' /tmp/trades.csv | awk 'NF{print; exit}' || true)
+          if [ -z "$data_line" ]; then echo "CSV contains no data rows (only comment+header)"; cat /tmp/trades.csv; exit 1; fi
+          # verify header columns (basic schema check)
+          header=$(sed -n '2p' /tmp/trades.csv || true)
+          expected_prefix="ts,side,status"
+          if [[ "$header" != ${expected_prefix}* ]]; then echo "CSV header does not match expected prefix: $header"; head -n 30 /tmp/trades.csv; exit 1; fi
+
+      - name: Validate CSV schema
+        working-directory: infra
+        shell: bash
+        run: |
+          python validate_trades_csv.py /tmp/trades.csv
+
+      - name: Download executions CSV and validate
+        working-directory: infra
+        shell: bash
+        run: |
+          STRAT=${STRATEGY_ID:-mtf-btc-1h-6h-16h}
+          URL="http://localhost:8000/v1/copy/executions.csv?strategyId=${STRAT}&sort=time&dir=desc&chunk_size=100"
+          echo "Downloading executions CSV $URL"
+          curl -s "$URL" -o /tmp/executions.csv || true
+          python validate_executions_csv.py /tmp/executions.csv || (head -n 30 /tmp/executions.csv || true; exit 1)
+
+      - name: Tear down
+        if: always()
+        working-directory: infra
+        run: |
+          docker compose down --remove-orphans -v || true

@@ -1,0 +1,12 @@
+{
+  "BTC": {"id": "bitcoin", "risk": "low"},
+  "ETH": {"id": "Ethereum", "risk": "low"},
+  "SOL": {"id": "Solana", "risk": "medium"},
+  "AVAX": {"id": "Avalanche-2", "risk": "medium"},
+  "XRP": {"id": "ripple", "risk": "medium"},
+  "LINK": {"id": "chainlink", "risk": "medium"},
+  "XMR": {"id": "monero", "risk": "medium"},
+  "PUMP": {"id": "pump-fun", "risk": "medium"},
+  "ASTER": {"id": "aster", "risk": "high"},
+  "BNB": {"id": "binancecoin", "risk": "high"}
+}

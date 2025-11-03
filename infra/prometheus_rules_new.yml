@@ -1,0 +1,39 @@
+groups:
+  - name: heyanon.rules
+    rules:
+      - alert: APIHighErrorRate
+        expr: sum(rate(heyanon_requests_total{status=~"5.."}[5m])) / sum(rate(heyanon_requests_total[5m])) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API 5xx error rate"
+          description: "API 5xx error rate > 2% for 5m"
+
+      - alert: CopyHighErrorRate
+        expr: sum(rate(copy_dispatch_total{result="error"}[5m])) / sum(rate(copy_dispatch_total[5m])) > 0.02
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High copy executor error rate"
+          description: "Copy dispatch error rate > 2% for 5m"
+
+      - alert: CopyLatencyHigh
+        expr: histogram_quantile(0.95, sum(rate(copy_dispatch_latency_seconds_bucket[5m])) by (le)) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High copy dispatch P95 latency"
+          description: "P95 > 1s"
+
+      - alert: StrategyHeartbeatStale
+        # adjusted for local testing: fire if last seen > 60s, require stable for 30s
+        expr: (time() - max(heyanon_strategy_last_heartbeat_unixtime) by (strategy_id)) > 60
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Strategy heartbeat stale"
+          description: "Strategy last seen > 5m"

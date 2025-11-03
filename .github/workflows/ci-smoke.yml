@@ -1,0 +1,273 @@
+name: CI Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Set up buildx cache dirs
+        run: |
+          mkdir -p /tmp/.buildx-cache || true
+
+      - name: Build api and bot images with buildx and cache
+        working-directory: infra
+        run: |
+          docker buildx build --load --cache-to=type=local,dest=/tmp/.buildx-cache-new --cache-from=type=local,src=/tmp/.buildx-cache -f Dockerfile ../api -t heyanon_api:ci || true
+          docker buildx build --load --cache-to=type=local,dest=/tmp/.buildx-cache-new --cache-from=type=local,src=/tmp/.buildx-cache -f Dockerfile ../bot -t heyanon_bot:ci || true
+          docker buildx build --load --cache-to=type=local,dest=/tmp/.buildx-cache-new --cache-from=type=local,src=/tmp/.buildx-cache -f Dockerfile ../executor -t heyanon_copy_executor:ci || true
+          # rotate cache
+          rm -rf /tmp/.buildx-cache || true
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true
+
+      - name: Cache pip for executor
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: executor-pip-${{ runner.os }}-${{ hashFiles('executor/requirements-dev.txt') }}
+          restore-keys: |
+            executor-pip-${{ runner.os }}-
+
+      - name: Run executor unit tests
+        working-directory: executor
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pytest -q
+
+      - name: Start compose stack (no-build)
+        working-directory: infra
+        run: |
+          docker compose up -d
+
+      - name: Wait for API to be healthy
+        working-directory: infra
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "api healthy"; exit 0
+            fi
+            echo "waiting for api... ($i)"
+            sleep 2
+          done
+          echo "api did not become healthy"; docker compose logs --tail 200 api; exit 1
+
+      - name: Run Alembic migrations (upgrade head)
+        working-directory: infra
+        run: |
+          echo "Applying alembic migrations inside api container..."
+          docker compose exec api sh -lc "alembic upgrade head"
+
+      - name: Run infra/e2e_test.py smoke test
+        working-directory: infra
+        env:
+          BASE_URL: http://localhost:8000
+          HEYANON_API_KEY: ${{ secrets.HEYANON_API_KEY }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests
+          python e2e_test.py
+
+      - name: Run infra/e2e_copy.py copy e2e for BTC and ETH in parallel
+        working-directory: infra
+        env:
+          BASE_URL: http://localhost:8000
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests
+          set -e
+          STRATS=("mtf-btc-1h-6h-16h" "mtf-eth-1h-6h-16h")
+          PIDS=()
+          for s in "${STRATS[@]}"; do
+            E2E_STRATEGY="$s" python e2e_copy.py > "e2e_copy_${s}.log" 2>&1 &
+            PIDS+=("$!")
+          done
+          RC=0
+          for p in "${PIDS[@]}"; do
+            wait $p || RC=$?
+          done
+          if [ "$RC" -ne 0 ]; then
+            echo "One or more e2e_copy runs failed"
+            ls -l e2e_copy_*.log || true
+            tail -n +1 e2e_copy_*.log || true
+            exit $RC
+          fi
+
+      - name: Assert cursor traversal in e2e logs
+        working-directory: infra
+        run: |
+          # the e2e_copy script prints 'cursor pagination sanity OK' on success
+          if grep -q "cursor pagination sanity OK" e2e_copy_mtf-btc-1h-6h-16h.log; then
+            echo "cursor traversal OK for BTC"
+          else
+            echo "cursor traversal missing in BTC e2e log"; tail -n 200 e2e_copy_mtf-btc-1h-6h-16h.log || true; exit 2
+          fi
+
+  copy-e2e:
+    runs-on: ubuntu-latest
+    needs: smoke
+    needs: [smoke, generate-matrix]
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read strategies list
+        id: read-strats
+        run: |
+          python - <<'PY'
+          import json,sys
+          with open('infra/ci/strategies.json') as f:
+            arr=json.load(f)
+          # produce the matrix shape expected by fromJson: [{"strategyId":"..."}, ...]
+          matrix=[{"strategyId":s} for s in arr]
+          print(json.dumps(matrix))
+          PY
+      - name: Set matrix output
+        id: set-matrix
+        run: |
+          echo "matrix=$(cat infra/ci/strategies.json | python -c 'import json,sys;arr=json.load(sys.stdin);print(__import__("json").dumps([{"strategyId":s} for s in arr]))')" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip for infra/e2e
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: infra-pip-${{ runner.os }}-${{ hashFiles('infra/requirements.txt') }}
+          restore-keys: |
+            infra-pip-${{ runner.os }}-
+
+      - name: Cache buildx cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: buildx-cache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-cache-${{ runner.os }}-
+
+      - name: Start compose stack (no-build)
+        working-directory: infra
+        run: |
+          docker compose up -d
+
+      - name: Wait for API to be healthy
+        working-directory: infra
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "api healthy"; exit 0
+            fi
+            echo "waiting for api... ($i)"
+            sleep 2
+          done
+          echo "api did not become healthy"; docker compose logs --tail 200 api; exit 1
+
+      - name: Run e2e_copy for matrix strategy
+        working-directory: infra
+        env:
+          BASE_URL: http://localhost:8000
+          E2E_STRATEGY: ${{ matrix.strategyId }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests
+          python e2e_copy.py > e2e_copy_${{ matrix.strategyId }}.log 2>&1
+          # also assert cursor traversal when script finished
+          if ! grep -q "cursor pagination sanity OK" e2e_copy_${{ matrix.strategyId }}.log; then
+            echo "cursor traversal missing for ${{ matrix.strategyId }}"; tail -n 200 e2e_copy_${{ matrix.strategyId }}.log || true; exit 3
+          fi
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copy-e2e-${{ matrix.strategyId }}-log
+          path: infra/e2e_copy_${{ matrix.strategyId }}.log
+
+      - name: Tear down compose (matrix job)
+        if: always()
+        working-directory: infra
+        run: |
+          docker compose down --remove-orphans -v || true
+
+      - name: Run infra/e2e_idempotency.py
+        working-directory: infra
+        env:
+          BASE_URL: http://localhost:8000
+          HEYANON_API_KEY: ${{ secrets.HEYANON_API_KEY }}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests
+          python e2e_idempotency.py
+
+      - name: Upload api logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-logs
+          path: |
+            infra/api-logs.txt
+        # collect logs into a file so we can upload
+      - name: Collect api logs (for artifact)
+        if: failure()
+        working-directory: infra
+        run: |
+          docker compose logs --tail 500 api > api-logs.txt || true
+
+      - name: Upload bot logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bot-logs
+          path: |
+            infra/bot-logs.txt
+
+      - name: Collect bot logs (for artifact)
+        if: failure()
+        working-directory: infra
+        run: |
+          docker compose logs --tail 500 bot > bot-logs.txt || true
+          docker compose logs --tail 500 copy-executor > copy-executor-logs.txt || true
+
+      - name: Upload copy-executor logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copy-executor-logs
+          path: |
+            infra/copy-executor-logs.txt
+
+      - name: Tear down compose
+        if: always()
+        run: |
+          docker compose -f infra/docker-compose.yml down --remove-orphans -v

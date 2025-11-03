@@ -1,0 +1,21 @@
+{
+  "BTC-PERP": {
+    "stepSize": 0.0001,
+    "precision": 6,
+    "minNotional": 1.0
+  },
+  "ETH-PERP": {
+    "stepSize": 0.001,
+    "precision": 6,
+    "minNotional": 1.0
+  }
+  ,
+  "SOL-PERP": { "stepSize": 0.01, "precision": 4, "minNotional": 5 },
+  "AVAX-PERP": { "stepSize": 0.01, "precision": 4, "minNotional": 5 },
+  "XRP-PERP": { "stepSize": 1, "precision": 1, "minNotional": 5 },
+  "LINK-PERP": { "stepSize": 0.001, "precision": 5, "minNotional": 5 },
+  "XMR-PERP": { "stepSize": 0.001, "precision": 5, "minNotional": 5 },
+  "PUMP-PERP": { "stepSize": 1, "precision": 1, "minNotional": 5 },
+  "ASTER-PERP": { "stepSize": 1, "precision": 1, "minNotional": 5 },
+  "BNB-PERP": { "stepSize": 0.001, "precision": 5, "minNotional": 5 }
+}
