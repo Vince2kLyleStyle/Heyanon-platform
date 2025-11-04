@@ -9,6 +9,20 @@ type Strategy = {
   pnl?: number | null;
 };
 
+function resolveApiBase(): string {
+  const envVal = process.env.NEXT_PUBLIC_API_URL as string | undefined;
+  if (envVal && envVal.trim().length > 0) return envVal;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    // In production on Render, default to the live API if env is missing
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      return 'https://heyanon-platform.onrender.com';
+    }
+  }
+  // Local dev fallback
+  return 'http://localhost:8000';
+}
+
 export default function StrategyList() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +31,8 @@ export default function StrategyList() {
   const backoff = useRef(1000);
   const isMounted = useRef(true);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // Determine API base at runtime to avoid "localhost" fallback in production when env isn't baked in
+  const apiBase = resolveApiBase();
 
   const fetchStrategies = async (useCursor = false) => {
     try {
@@ -70,6 +85,7 @@ export default function StrategyList() {
   return (
     <main style={{ padding: 20 }}>
       <h1>Strategies</h1>
+      <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>API: {apiBase}</div>
       {error && (
         <div style={{ background: '#fee', padding: 10, borderRadius: 6, marginBottom: 12 }}>
           <strong>Error:</strong> {error} <button onClick={() => { setError(null); setLoading(true); fetchStrategies(); }}>Retry</button>

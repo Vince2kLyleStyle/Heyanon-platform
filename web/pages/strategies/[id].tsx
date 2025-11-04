@@ -13,6 +13,18 @@ type Trade = {
   pnl?: number;
 };
 
+function resolveApiBase(): string {
+  const envVal = process.env.NEXT_PUBLIC_API_URL as string | undefined;
+  if (envVal && envVal.trim().length > 0) return envVal;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      return 'https://heyanon-platform.onrender.com';
+    }
+  }
+  return 'http://localhost:8000';
+}
+
 export default function StrategyDetail() {
   const router = useRouter();
   const { id } = router.query as { id?: string };
@@ -22,7 +34,7 @@ export default function StrategyDetail() {
   const [position, setPosition] = useState<any>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const apiBase = resolveApiBase();
 
   const fetchData = async () => {
     if (!id) return;
@@ -75,6 +87,7 @@ export default function StrategyDetail() {
   return (
     <main style={{ padding: 20 }}>
       <h1>Strategy {id}</h1>
+      <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>API: {apiBase}</div>
       {loading && <p>Loading…</p>}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
 
