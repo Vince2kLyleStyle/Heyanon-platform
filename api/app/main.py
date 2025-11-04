@@ -51,6 +51,32 @@ for attempt in range(1, max_retries + 1):
 def health():
     return {"ok": True}
 
+@app.post("/seed")
+def seed_database():
+    """One-time endpoint to seed strategies. Safe to call multiple times."""
+    from .db import SessionLocal
+    from .models import Strategy
+    
+    db = SessionLocal()
+    try:
+        items = [
+            {"id": "swing-perp-16h", "name": "Swing Perp (16h regime)", "description": "1h signals, 16h regime filter", "category": "perp", "status": "live", "markets": ["BTCUSDT", "ETHUSDT", "SOLUSDT"]},
+            {"id": "mtf-btc-1h-6h-16h", "name": "MTF BTC (1h/6h/16h)", "description": "1h signals with 6h+16h regimes", "category": "perp", "status": "live", "markets": ["BTCUSDT"]},
+            {"id": "mtf-eth-1h-6h-16h", "name": "MTF ETH (1h/6h/16h)", "description": "1h signals with 6h+16h regimes", "category": "perp", "status": "live", "markets": ["ETHUSDT"]},
+            {"id": "scalp-perp-15m", "name": "Scalp Perp (15m)", "description": "15m scalp strategy", "category": "perp", "status": "live", "markets": ["BTCUSDT", "ETHUSDT"]},
+        ]
+        
+        added = 0
+        for x in items:
+            if not db.get(Strategy, x["id"]):
+                db.add(Strategy(id=x["id"], name=x["name"], description=x["description"], category=x["category"], status=x["status"], markets=x.get("markets", [])))
+                added += 1
+        
+        db.commit()
+        return {"ok": True, "added": added, "message": f"Seeded {added} strategies"}
+    finally:
+        db.close()
+
 # Routers
 app.include_router(ingest_router)
 app.include_router(read_router)
