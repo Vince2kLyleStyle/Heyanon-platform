@@ -17,7 +17,7 @@ export default function StrategyList() {
   const backoff = useRef(1000);
   const isMounted = useRef(true);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   const fetchStrategies = async (useCursor = false) => {
     try {

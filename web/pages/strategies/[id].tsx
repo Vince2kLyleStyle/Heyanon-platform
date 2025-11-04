@@ -22,7 +22,7 @@ export default function StrategyDetail() {
   const [position, setPosition] = useState<any>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   const fetchData = async () => {
     if (!id) return;
