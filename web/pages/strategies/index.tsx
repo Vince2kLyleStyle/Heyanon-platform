@@ -29,6 +29,9 @@ export default function StrategyList() {
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastStatus, setLastStatus] = useState<number | null>(null);
+  const [rawPreview, setRawPreview] = useState<string | null>(null);
+  const [itemCount, setItemCount] = useState<number>(0);
   const backoff = useRef(1000);
   const isMounted = useRef(true);
 
@@ -52,13 +55,20 @@ export default function StrategyList() {
       const url = new URL(`${apiBase}/v1/strategies`);
       if (useCursor && cursor) url.searchParams.set('cursor', cursor);
       const res = await fetchWithTimeout(url.toString());
+      setLastStatus(res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const text = await res.text();
+      setRawPreview(text ? text.slice(0, 500) : null);
+      let data: any;
+      try { data = text ? JSON.parse(text) : {}; } catch (e) {
+        throw new Error('Invalid JSON from API');
+      }
       // support { items: [...], next_cursor } or plain array
       const items = Array.isArray(data) ? data : data.items || [];
       const next = data.next_cursor || null;
       if (!isMounted.current) return;
       setStrategies(items as Strategy[]);
+      setItemCount((items as any[]).length || 0);
       setCursor(next);
       setLoading(false);
       backoff.current = 1000;
@@ -109,6 +119,14 @@ export default function StrategyList() {
           <strong>Error:</strong> {error} <button onClick={() => { setError(null); setLoading(true); fetchStrategies(); }}>Retry</button>
         </div>
       )}
+      <details style={{ marginBottom: 12 }}>
+        <summary>Debug</summary>
+        <div style={{ fontSize: 12, color: '#444' }}>
+          <div>Status: {lastStatus ?? '—'}</div>
+          <div>Items: {itemCount}</div>
+          <pre style={{ whiteSpace: 'pre-wrap', background: '#f7f7f7', padding: 8, borderRadius: 6 }}>{rawPreview ?? '—'}</pre>
+        </div>
+      </details>
       {loading && <p>Loading…</p>}
       {!loading && strategies.length === 0 && <p>No strategies found.</p>}
       <ul style={{ listStyle: 'none', padding: 0 }}>
