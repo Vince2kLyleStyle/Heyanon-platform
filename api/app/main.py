@@ -42,8 +42,9 @@ for attempt in range(1, max_retries + 1):
         break
     except OperationalError as e:
         if attempt == max_retries:
-            # Last attempt: re-raise so it's visible in logs
-            raise
+            # Last attempt: log and continue so the app can start; DB may become ready later
+            print(f"Database not ready after {max_retries} attempts: {e}")
+            break
         print(f"Database not ready (attempt {attempt}/{max_retries}): {e}")
         time.sleep(2)
 
