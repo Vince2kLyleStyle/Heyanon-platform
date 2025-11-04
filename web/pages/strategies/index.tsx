@@ -28,18 +28,30 @@ export default function StrategyList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const backoff = useRef(1000);
   const isMounted = useRef(true);
 
   // Determine API base at runtime to avoid "localhost" fallback in production when env isn't baked in
   const apiBase = resolveApiBase();
 
+  const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 10000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      return res;
+    } finally {
+      clearTimeout(id);
+    }
+  };
+
   const fetchStrategies = async (useCursor = false) => {
     try {
       setError(null);
       const url = new URL(`${apiBase}/v1/strategies`);
       if (useCursor && cursor) url.searchParams.set('cursor', cursor);
-      const res = await fetch(url.toString());
+      const res = await fetchWithTimeout(url.toString());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       // support { items: [...], next_cursor } or plain array
@@ -63,12 +75,12 @@ export default function StrategyList() {
   useEffect(() => {
     isMounted.current = true;
     fetchStrategies();
-    const iv = setInterval(() => fetchStrategies(), 10000);
+    const iv = setInterval(() => { if (autoRefresh) fetchStrategies(); }, 10000);
     return () => {
       isMounted.current = false;
       clearInterval(iv);
     };
-  }, []);
+  }, [autoRefresh]);
 
   const isOnline = (s: Strategy) => {
     const tsStr = (s as any).lastHeartbeat || (s as any).last_seen || s.lastHeartbeat;
@@ -86,6 +98,12 @@ export default function StrategyList() {
     <main style={{ padding: 20 }}>
       <h1>Strategies</h1>
       <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>API: {apiBase}</div>
+      <div style={{ marginBottom: 8 }}>
+        <label>
+          <input type="checkbox" checked={autoRefresh} onChange={(e)=>setAutoRefresh(e.target.checked)} /> Auto-refresh
+        </label>
+        <button style={{ marginLeft: 8 }} onClick={() => { setLoading(true); fetchStrategies(); }}>Refresh now</button>
+      </div>
       {error && (
         <div style={{ background: '#fee', padding: 10, borderRadius: 6, marginBottom: 12 }}>
           <strong>Error:</strong> {error} <button onClick={() => { setError(null); setLoading(true); fetchStrategies(); }}>Retry</button>
