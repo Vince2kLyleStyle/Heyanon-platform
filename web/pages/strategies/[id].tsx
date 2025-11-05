@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -24,6 +26,7 @@ export default function StrategyDetail() {
   const { id } = router.query;
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const apiBase = resolveApiBase();
 
   useEffect(() => {
@@ -31,14 +34,21 @@ export default function StrategyDetail() {
 
     const fetchLogs = async () => {
       try {
-        const res = await fetch(`${apiBase}/v1/strategies/${id}/logs`);
+        setError(null);
+        const res = await fetch(`${apiBase}/v1/strategies/${id}/logs`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          setLogs(data);
+          // Handle both array response and { value: [], Count: N } response
+          const items = Array.isArray(data) ? data : data?.value || [];
+          setLogs(items);
+        } else {
+          console.warn('Logs fetch failed:', res.status);
+          setError(`Failed to load logs (HTTP ${res.status})`);
         }
         setLoading(false);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Logs fetch error:', e);
+        setError(e?.message || 'Failed to load logs');
         setLoading(false);
       }
     };
@@ -79,11 +89,16 @@ export default function StrategyDetail() {
         </button>
         <h1 style={{ margin: 0, marginBottom: 8 }}>Strategy {id}</h1>
         <div style={{ fontSize: 14, color: '#666' }}>Execution logs (last 50 entries)</div>
+        {error && (
+          <div style={{ fontSize: 13, color: '#f44336', marginTop: 8 }}>
+            {error}
+          </div>
+        )}
       </div>
 
-      {logs.length === 0 && (
+      {logs.length === 0 && !error && (
         <div style={{ fontSize: 14, color: '#999', padding: 16, background: '#f9f9f9', borderRadius: 8 }}>
-          No logs yet. Check back once the strategy runs.
+          No logs yet — strategy is waiting for first evaluation.
         </div>
       )}
 

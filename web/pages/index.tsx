@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -50,30 +52,39 @@ export default function Home() {
   const [summary, setSummary] = useState<Summary>({});
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const apiBase = resolveApiBase();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setError(null);
         const [summaryRes, strategiesRes] = await Promise.all([
-          fetch(`${apiBase}/v1/summary`),
-          fetch(`${apiBase}/v1/strategies`),
+          fetch(`${apiBase}/v1/summary`, { cache: 'no-store' }),
+          fetch(`${apiBase}/v1/strategies`, { cache: 'no-store' }),
         ]);
 
         if (summaryRes.ok) {
           const summaryData = await summaryRes.json();
-          setSummary(summaryData);
+          setSummary(summaryData || {});
+        } else {
+          console.warn('Summary fetch failed:', summaryRes.status);
         }
 
         if (strategiesRes.ok) {
           const strategiesData = await strategiesRes.json();
-          setStrategies(strategiesData);
+          // Handle both array response and { items: [] } response
+          const items = Array.isArray(strategiesData) ? strategiesData : strategiesData?.items || [];
+          setStrategies(items);
+        } else {
+          console.warn('Strategies fetch failed:', strategiesRes.status);
         }
 
         setLoading(false);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Home fetch error:', e);
+        setError(e?.message || 'Failed to load data');
         setLoading(false);
       }
     };
@@ -107,15 +118,18 @@ export default function Home() {
     return <div style={{ padding: 20 }}>Loading Mico's World...</div>;
   }
 
+  const status = summary?.status || (error ? 'degraded' : 'ok');
+  const regime = summary?.regime || 'Neutral';
+
   return (
     <div style={{ padding: '0 20px', maxWidth: 1200, margin: '0 auto' }}>
       {/* Hero/Meta */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ margin: 0, marginBottom: 8 }}>Mico's World</h1>
         <div style={{ display: 'flex', gap: 16, fontSize: 14, color: '#666', alignItems: 'center' }}>
-          <span>Updated: {formatTime(summary.updatedAt)}</span>
-          <span>Regime: {summary.regime || 'Neutral'}</span>
-          {summary.status === 'degraded' && (
+          <span>Updated: {formatTime(summary?.updatedAt)}</span>
+          <span>Regime: {regime}</span>
+          {status === 'degraded' && (
             <span
               style={{
                 padding: '2px 8px',
@@ -128,6 +142,9 @@ export default function Home() {
             >
               Degraded (retrying)
             </span>
+          )}
+          {error && (
+            <span style={{ fontSize: 12, color: '#f44336' }}>Error: {error}</span>
           )}
         </div>
       </div>
@@ -159,7 +176,7 @@ export default function Home() {
       </div>
 
       {/* Most Recent Trade */}
-      {summary.mostRecentTrade && (
+      {summary?.mostRecentTrade && (
         <div style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: 18, marginBottom: 12 }}>Most Recent Trade</h2>
           <div
@@ -176,7 +193,7 @@ export default function Home() {
                   {summary.mostRecentTrade.name} • {summary.mostRecentTrade.market}
                 </div>
                 <div style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>
-                  {summary.mostRecentTrade.action} @ ${summary.mostRecentTrade.price.toFixed(4)}
+                  {summary.mostRecentTrade.action} @ ${summary.mostRecentTrade.price?.toFixed(4) || '—'}
                 </div>
                 <div style={{ fontSize: 12, color: '#999' }}>{formatTime(summary.mostRecentTrade.ts)}</div>
               </div>
