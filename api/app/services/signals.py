@@ -21,13 +21,14 @@ RETRY_DELAY = 10
 POLL_SECONDS = 60
 
 # Coins with CoinGecko IDs and risk tiers for zone multipliers
+# Slimmed to just BTC and SOL for now per request.
+# To add a new asset, include its CoinGecko ID and choose a risk tier.
+# Example placeholder for pumpfun (uncomment when correct CoinGecko ID is confirmed):
+# "PUMPFUN": {"id": "<coingecko-id-here>", "risk": "high"},
 COINS = {
     "BTC": {"id": "bitcoin", "risk": "low"},
-    "ETH": {"id": "ethereum", "risk": "low"},
     "SOL": {"id": "solana", "risk": "medium"},
-    "AVAX": {"id": "avalanche-2", "risk": "medium"},
-    "LINK": {"id": "chainlink", "risk": "medium"},
-    "PYTH": {"id": "pyth-network", "risk": "high"},
+    "PUMP": {"id": "pump", "risk": "high"},
 }
 
 # ATR-based zone multipliers (k1, k2) for risk tiers
@@ -44,6 +45,76 @@ state: Dict[str, Any] = {
     "signals": {},
     "errors": [],
 }
+
+def atr14_proxy(df: pd.DataFrame) -> float:
+    """ATR(14) proxy in absolute $ terms using rolling std of returns times last price."""
+    if len(df) < 15:
+        return 0.0
+    try:
+        pct_std = df["close"].pct_change().rolling(14).std()
+        last_price = float(df["close"].iloc[-1])
+        return float((pct_std.iloc[-1] or 0.0) * last_price)
+    except Exception:
+        return 0.0
+
+def label_and_score(z: Dict[str, float], sma20: float, sma50: float, rsi: Optional[float], atr_abs: float):
+    """Return (label, score 0-100, atr_pct) using proximity to bands, trend, RSI band, and volatility penalty."""
+    c = z["current"]
+
+    # Support both legacy keys (deepAccum/accum/distrib/safeDistrib) and new names
+    deep_buy = z.get("deep_buy", z.get("deepAccum", 0.0))
+    regular_buy = z.get("regular_buy", z.get("accum", 0.0))
+    regular_sell = z.get("regular_sell", z.get("distrib", 0.0))
+    safe_sell = z.get("safe_sell", z.get("safeDistrib", 0.0))
+
+    deep_d = abs((c - deep_buy) / max(1e-9, deep_buy))
+    regb_d = abs((c - regular_buy) / max(1e-9, regular_buy))
+    regs_d = abs((c - regular_sell) / max(1e-9, regular_sell))
+    safes_d = abs((c - safe_sell) / max(1e-9, safe_sell))
+
+    # Trend and RSI band score
+    trend = 1 if sma20 > sma50 else 0
+    rsi_val = rsi if rsi is not None else 50.0
+    rsi_ok = 1 if 40 <= rsi_val <= 70 else 0
+
+    # Volatility penalty (higher ATR% => lower score)
+    atr_pct = (atr_abs / max(1e-9, c)) * 100.0
+    vol_pen = max(0.0, min(1.0, atr_pct / 10.0))  # 0–1 over ~0–10%
+
+    # Labeling by zones
+    if c <= deep_buy:
+        label = "Deep Accumulation"
+    elif c <= regular_buy:
+        label = "Accumulation"
+    elif c >= safe_sell:
+        label = "Safe Distribution"
+    elif c >= regular_sell:
+        label = "Distribution"
+    else:
+        label = "Neutral"
+
+    # Score blend 0–100
+    proximity = 1.0 - min(deep_d, regb_d, regs_d, safes_d)
+    proximity = max(0.0, min(1.0, proximity))
+    score = int(100 * (0.45 * proximity + 0.25 * trend + 0.20 * rsi_ok + 0.10 * (1.0 - vol_pen)))
+    return label, score, atr_pct
+
+def compute_regime(signals: Dict[str, Any]) -> str:
+    """Derive a simple aggregate regime from majority label bucket."""
+    counts = {
+        "Deep Accumulation": 0,
+        "Accumulation": 0,
+        "Neutral": 0,
+        "Distribution": 0,
+        "Safe Distribution": 0,
+    }
+    for s in signals.values():
+        lbl = s.get("label", "Neutral")
+        counts[lbl] = counts.get(lbl, 0) + 1
+    for k in ["Deep Accumulation", "Accumulation", "Neutral", "Distribution", "Safe Distribution"]:
+        if counts.get(k, 0) > 0:
+            return k
+    return "Neutral"
 
 
 def calculate_indicators(df: pd.DataFrame) -> pd.DataFrame:
@@ -91,7 +162,7 @@ def compute_zones(df: pd.DataFrame, risk: str) -> Optional[Dict[str, float]]:
     atr14 = float(df["ATR14"].iloc[-1])
     k1, k2 = RISK_MULTIPLIERS[risk]
     
-    return {
+    zones = {
         "deepAccum": max(0.0, sma20 - k2 * atr14),
         "accum": max(0.0, sma20 - k1 * atr14),
         "distrib": sma20 + k1 * atr14,
@@ -101,6 +172,12 @@ def compute_zones(df: pd.DataFrame, risk: str) -> Optional[Dict[str, float]]:
         "sma50": float(df["SMA50"].iloc[-1]) if not df["SMA50"].isna().iloc[-1] else sma20,
         "atr14": atr14,
     }
+    # Provide alias keys expected by downstream helpers (deep_buy, regular_buy, regular_sell, safe_sell)
+    zones["deep_buy"] = zones["deepAccum"]
+    zones["regular_buy"] = zones["accum"]
+    zones["regular_sell"] = zones["distrib"]
+    zones["safe_sell"] = zones["safeDistrib"]
+    return zones
 
 
 def label_from_zones(zones: Dict[str, float], regime: str) -> str:
@@ -198,48 +275,49 @@ async def fetch_market_data(
 
 
 async def refresh_signals():
-    """Fetch market data for all coins, compute indicators, zones, labels, and scores."""
+    """Fetch market data for all coins, compute indicators, zones, labels, scores, and regime."""
     async with httpx.AsyncClient() as client:
-        results = {}
-        
+        results: Dict[str, Any] = {}
+
         for symbol, info in COINS.items():
             df = await fetch_market_data(client, info["id"])
             if df is None or len(df) < 50:
                 continue
-            
+
             df = calculate_indicators(df)
             zones = compute_zones(df, info["risk"])
             if not zones:
                 continue
-            
-            label = label_from_zones(zones, state["regime"])
-            score = compute_score(zones, df, state["regime"])
-            
-            rsi = float(df["RSI14"].iloc[-1]) if not df["RSI14"].isna().iloc[-1] else None
-            vol_spike = bool(df["vol_spike"].iloc[-1]) if not df["vol_spike"].isna().iloc[-1] else False
-            
+
+            rsi = float(df["RSI14"].iloc[-1]) if "RSI14" in df.columns and not df["RSI14"].isna().iloc[-1] else None
+            vol_spike = bool(df["vol_spike"].iloc[-1]) if "vol_spike" in df.columns and not df["vol_spike"].isna().iloc[-1] else False
+            atr_abs = atr14_proxy(df)
+            label, score, atr_pct = label_and_score(zones, zones["sma20"], zones["sma50"], rsi, atr_abs)
+
             results[symbol] = {
                 "symbol": symbol,
                 "label": label,
-                "score": score,
+                "score": score,  # 0–100
                 "price": zones["current"],
                 "sma20": zones["sma20"],
                 "sma50": zones["sma50"],
-                "atr14": zones["atr14"],
+                "atr14": atr_abs,          # absolute $ proxy
+                "atr_pct": atr_pct,        # % of price
                 "rsi14": rsi,
                 "vol_spike": vol_spike,
                 "zones": {
-                    "deepAccum": zones["deepAccum"],
-                    "accum": zones["accum"],
-                    "distrib": zones["distrib"],
-                    "safeDistrib": zones["safeDistrib"],
+                    "deepAccum": zones["deep_buy"],
+                    "accum": zones["regular_buy"],
+                    "distrib": zones["regular_sell"],
+                    "safeDistrib": zones["safe_sell"],
                 },
             }
-            
+
             # Rate-limit friendly: small random delay between requests
             await asyncio.sleep(0.25 * random.uniform(0.8, 1.2))
-        
+
         state["signals"] = results
+        state["regime"] = compute_regime(results)
         state["last_updated"] = datetime.now(timezone.utc).isoformat()
 
 
