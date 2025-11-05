@@ -36,6 +36,7 @@ trade_log: list = []
 # Callbacks
 on_open_callback = None
 on_close_callback = None
+api_client = None  # Will be injected by bot.py for posting strategy logs
 
 def register_on_open(cb):
     global on_open_callback
@@ -44,6 +45,11 @@ def register_on_open(cb):
 def register_on_close(cb):
     global on_close_callback
     on_close_callback = cb
+
+def set_api_client(client):
+    """Inject the HeyAnon client so strategy can post its own logs"""
+    global api_client
+    api_client = client
 
 # ===== UTIL =====
 def send_discord(message: str) -> None:
@@ -280,6 +286,49 @@ def generate_signal(symbol: str, prod: str):
 
     buy = cu and (mfi1v > 50) and multiBull
     sell = cd and (mfi1v < 50) and multiBear
+
+    # Post rich evaluation log to API for UI visibility (production-quality)
+    if api_client:
+        try:
+            strategy_id = os.getenv("STRATEGY_ID", "swing-perp-16h")
+            event_type = "signal_long" if buy else ("signal_short" if sell else "evaluation")
+            score = (alignLong * 25) if buy else ((alignShort * 25) if sell else max(alignLong, alignShort) * 20)
+            
+            # Determine label based on score and market conditions
+            if buy:
+                label = "Aggressive Accumulation"
+            elif sell:
+                label = "Aggressive Distribution"
+            elif alignLong >= 3:
+                label = "Accumulation"
+            elif alignShort >= 3:
+                label = "Distribution"
+            else:
+                label = "Observation"
+            
+            # Build compact note showing filters and blockers
+            note_parts = [f"score {int(score)} • label {label}"]
+            if buy:
+                note_parts.append(f"✓ {alignLong}/4 long filters")
+            elif sell:
+                note_parts.append(f"✓ {alignShort}/4 short filters")
+            else:
+                filters_info = f"{alignLong}/4 long"
+                if blockedLong:
+                    filters_info += f" (blocked: {','.join(blockedLong[:2])})"
+                note_parts.append(filters_info)
+            
+            # POST to canonical endpoint
+            api_client._post(f"/v1/strategies/{strategy_id}/logs", {
+                "event": event_type,
+                "market": symbol.replace("-USD", "USDT"),  # Normalize to BTCUSDT format
+                "note": " • ".join(note_parts),
+                "score": int(score),
+                "label": label,
+                "price": round(c, 2),
+            }, max_retries=1)
+        except Exception as e:
+            log(f"Failed to post evaluation log: {e}")
 
     if buy:
         log(f"[{symbol}] → BUY setup confirmed (alignLong={alignLong}/4). SL={slBuy:.2f} TP1={tp1Buy:.2f} TP2={tp2Buy:.2f}")

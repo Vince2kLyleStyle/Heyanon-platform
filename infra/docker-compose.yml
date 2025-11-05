@@ -36,6 +36,9 @@ services:
       - API_KEY=supersecret
     ports:
       - "8000:8000"
+    volumes:
+      - ../api/app:/app/app:rw
+      - ../api/data:/app/data:rw
     depends_on:
       postgres:
         condition: service_healthy
@@ -175,6 +178,8 @@ services:
       - HEYANON_API_KEY=supersecret
       - API_SHARED_SECRET=supersecret
       - SNAPSHOT_INTERVAL_SEC=30
+    volumes:
+      - ../bot:/app:rw
     depends_on:
       - api
     restart: unless-stopped

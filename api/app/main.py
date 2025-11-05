@@ -96,13 +96,13 @@ def seed_database():
     finally:
         db.close()
 
-# Routers
+# Routers (order matters: specific routes before generic)
 from .routes_summary import router as summary_router
+app.include_router(summary_router)  # Must come first for /v1/strategies/swing-perp-16h
 app.include_router(ingest_router)
 app.include_router(read_router)
 app.include_router(metrics_router)
 app.include_router(copy_router)
-app.include_router(summary_router)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,20 @@
+{
+  "lastEvaluated": "2025-11-05T16:05:12.493344+00:00",
+  "latestSignal": {
+    "label": "Distribution",
+    "score": 60,
+    "market": "BTC",
+    "price": 103442.7,
+    "trend": {
+      "sma20": "Up",
+      "sma50": "Up",
+      "rsi14": 50.0
+    },
+    "zones": {
+      "deepAccum": 0.0,
+      "accum": 0.0,
+      "distrib": 0.0,
+      "safeDistrib": 0.0
+    }
+  }
+}

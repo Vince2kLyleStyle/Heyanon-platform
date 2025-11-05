@@ -1,4 +1,8 @@
-from .serializers import build_trade_event, build_position_event
+# Allow running bot as a script (python bot.py) without package context
+try:
+    from .serializers import build_trade_event, build_position_event  # type: ignore
+except Exception:
+    from serializers import build_trade_event, build_position_event
 import uuid
 
 

@@ -58,7 +58,29 @@ def post_trade(e: schemas.TradeEvent, db: Session = Depends(get_db), _=Depends(r
         db.rollback()
         # likely a duplicate due to unique constraint
         logger.warning("deduped trade: %s %s", e.orderId, id_key)
+        # Also emit a log entry for visibility
+        try:
+            from .routes_summary import append_log  # local import to avoid circulars at module load
+            append_log(e.strategyId, {
+                "ts": e.ts,
+                "event": "trade",
+                "market": symbol,
+                "note": f"{(rec.side or '').upper()} {rec.qty}@{rec.fill_px or rec.entry_px} status=duplicate",
+            })
+        except Exception:
+            pass
         return {"ok": True, "stored": False, "deduped": True}
+    # On success, write a compact strategy log row for UI
+    try:
+        from .routes_summary import append_log  # local import to avoid circulars at module load
+        append_log(e.strategyId, {
+            "ts": e.ts,
+            "event": "trade",
+            "market": symbol,
+            "note": f"{(rec.side or '').upper()} {rec.qty}@{rec.fill_px or rec.entry_px} type={rec.type} status={rec.status}",
+        })
+    except Exception:
+        pass
     return {"ok": True, "stored": True, "deduped": False}
 
 @router.post("/position")
@@ -83,6 +105,20 @@ def post_position(p: schemas.PositionSnapshot, db: Session = Depends(get_db), _=
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="db error")
+    # Emit a lightweight log row so the strategy detail screen has activity
+    try:
+        from .routes_summary import append_log
+        # Prefer uppercase market symbol in logs for consistency
+        mkt = (rec.symbol or rec.market or "")
+        note = f"qty={rec.qty} avg={rec.avg_entry} mark={rec.mark} upnl={rec.upnl} lev={rec.leverage}"
+        append_log(p.strategyId, {
+            "ts": rec.ts,
+            "event": "position",
+            "market": mkt,
+            "note": note,
+        })
+    except Exception:
+        pass
     return {"ok": True}
 
 @router.post("/pnl")
