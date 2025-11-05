@@ -125,6 +125,36 @@ def compute_position_from_trades(trades: List[Dict[str, Any]]) -> Dict[str, Any]
     }
 
 
+@router.get("/v1/version")
+async def get_version():
+    """
+    GET /v1/version - Returns build info for frontend display.
+    Shows git commit SHA and build timestamp.
+    """
+    import subprocess
+    from datetime import datetime, timezone
+    
+    # Get git commit SHA (short 7 chars)
+    try:
+        sha = subprocess.check_output(
+            ["git", "rev-parse", "--short=7", "HEAD"],
+            cwd=Path(__file__).parent.parent.parent,
+            text=True
+        ).strip()
+    except Exception:
+        sha = "unknown"
+    
+    # Build timestamp (ISO 8601)
+    built_at = datetime.now(timezone.utc).isoformat()
+    
+    return {
+        "sha": sha,
+        "built_at": built_at,
+        "strategy_id": STRATEGY_ID,
+        "version": "1.0.0"
+    }
+
+
 @router.get("/v1/summary")
 async def get_summary():
     """
@@ -484,3 +514,77 @@ async def get_strategy_roundtrips_generic(strategy_id: str, limit: int = Query(1
             })
     
     return trips[-limit:]
+
+
+@router.get("/v1/strategies/swing-perp-16h/kpis")
+async def get_strategy_kpis_canonical(window: str = Query("7d", description="Time window: 7d, 24h, 30d")):
+    """
+    GET /v1/strategies/swing-perp-16h/kpis?window=7d
+    Returns aggregated KPIs over time window.
+    Shape: {alertsIssued, avgScore, riskSuppressedCount, medianTimeBetweenEvals}
+    """
+    # Parse window
+    now = datetime.now(timezone.utc)
+    if window.endswith("d"):
+        delta = timedelta(days=int(window[:-1]))
+    elif window.endswith("h"):
+        delta = timedelta(hours=int(window[:-1]))
+    else:
+        delta = timedelta(days=7)  # Default
+    
+    cutoff = now - delta
+    
+    # Read logs from file
+    logs = tail_jsonl(get_logs_file(STRATEGY_ID), 10000)  # Get enough history
+    
+    # Filter by time window
+    filtered = []
+    for log in logs:
+        try:
+            ts = datetime.fromisoformat(log.get("ts", "").replace("Z", "+00:00"))
+            if ts >= cutoff:
+                filtered.append(log)
+        except Exception:
+            continue
+    
+    # Compute KPIs
+    alerts_issued = sum(1 for log in filtered if log.get("event") in ("signal_long", "signal_short"))
+    
+    scores = [log.get("score", 0) for log in filtered if isinstance(log.get("score"), (int, float))]
+    avg_score = int(sum(scores) / len(scores)) if scores else 0
+    
+    risk_suppressed = sum(1 for log in filtered if "blocked" in log.get("note", "").lower())
+    
+    # Median time between evaluations (minutes)
+    eval_times = []
+    for log in filtered:
+        if log.get("event") == "evaluation":
+            try:
+                eval_times.append(datetime.fromisoformat(log.get("ts", "").replace("Z", "+00:00")))
+            except Exception:
+                continue
+    
+    eval_times.sort()
+    gaps = [(eval_times[i] - eval_times[i-1]).total_seconds() / 60.0 for i in range(1, len(eval_times))]
+    gaps.sort()
+    median_gap = gaps[len(gaps) // 2] if gaps else 0
+    
+    return {
+        "window": window,
+        "alertsIssued": alerts_issued,
+        "avgScore": avg_score,
+        "riskSuppressedCount": risk_suppressed,
+        "medianTimeBetweenEvalsMin": round(median_gap, 1)
+    }
+
+
+@router.get("/v1/strategies/{strategy_id}/kpis")
+async def get_strategy_kpis_generic(strategy_id: str, window: str = Query("7d")):
+    """Generic KPIs endpoint with alias resolution"""
+    resolved_id = resolve_strategy_id(strategy_id)
+    
+    if resolved_id != STRATEGY_ID:
+        # Redirect to canonical
+        return await get_strategy_kpis_canonical(window)
+    
+    return await get_strategy_kpis_canonical(window)
