@@ -1,4 +1,5 @@
 import os
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .db import Base, engine
@@ -10,6 +11,7 @@ from .routes_read import router as read_router
 from .routes_metrics import router as metrics_router
 from .routes_copy import router as copy_router
 from .middleware import metrics_middleware
+from .services.signals import state as signals_state, loop_runner, refresh_signals
 
 app = FastAPI(title="HeyAnon API", version="0.1.0")
 
@@ -48,9 +50,25 @@ for attempt in range(1, max_retries + 1):
         print(f"Database not ready (attempt {attempt}/{max_retries}): {e}")
         time.sleep(2)
 
+@app.on_event("startup")
+async def start_signal_loop():
+    """Start the background signal refresh loop on startup."""
+    asyncio.create_task(loop_runner())
+
 @app.get("/health")
 def health():
     return {"ok": True}
+
+@app.get("/v1/signals")
+async def get_signals():
+    """Get current market signals with zones, labels, and scores."""
+    return signals_state
+
+@app.post("/v1/signals/run")
+async def force_refresh_signals():
+    """Force an immediate refresh of signals (bypasses 60s cache)."""
+    await refresh_signals()
+    return signals_state
 
 @app.post("/seed")
 def seed_database():
