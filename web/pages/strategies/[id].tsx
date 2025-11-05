@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-type Trade = {
-  id: string;
+type LogEntry = {
   ts: string;
-  pair: string;
-  side: string;
-  qty: number;
-  entry?: number;
-  exit?: number;
-  fee?: number;
-  pnl?: number;
+  event: string;
+  details?: Record<string, any>;
 };
 
 function resolveApiBase(): string {
@@ -27,122 +21,119 @@ function resolveApiBase(): string {
 
 export default function StrategyDetail() {
   const router = useRouter();
-  const { id } = router.query as { id?: string };
-  const [trades, setTrades] = useState<Trade[]>([]);
+  const { id } = router.query;
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [position, setPosition] = useState<any>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
-
   const apiBase = resolveApiBase();
 
-  const fetchData = async () => {
-    if (!id) return;
-    try {
-      setError(null);
-      setLoading(true);
-      const [tRes, pRes] = await Promise.all([
-        fetch(`${apiBase}/v1/strategies/${encodeURIComponent(id)}/trades`),
-        fetch(`${apiBase}/v1/strategies/${encodeURIComponent(id)}/positions`),
-      ]);
-      if (!tRes.ok) throw new Error(`trades HTTP ${tRes.status}`);
-      if (!pRes.ok) throw new Error(`positions HTTP ${pRes.status}`);
-      const tJson = await tRes.json();
-      const pJson = await pRes.json();
-      // normalize trades response (support { items: [] } or array)
-      const tItems = Array.isArray(tJson) ? tJson : tJson.items || [];
-      setTrades(tItems as Trade[]);
-      setPosition(pJson[0] || null);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message || String(err));
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-    const iv = setInterval(() => { if (autoRefresh) fetchData(); }, 10000);
-    return () => clearInterval(iv);
-  }, [id]);
+    if (!id) return;
 
-  const exportCsv = async () => {
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch(`${apiBase}/v1/strategies/${id}/logs`);
+        if (res.ok) {
+          const data = await res.json();
+          setLogs(data);
+        }
+        setLoading(false);
+      } catch (e) {
+        console.error('Logs fetch error:', e);
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 15000); // Poll every 15s
+    return () => clearInterval(interval);
+  }, [id, apiBase]);
+
+  const formatTime = (isoString: string) => {
     try {
-      const res = await fetch(`${apiBase}/v1/strategies/${encodeURIComponent(id)}/trades.csv`);
-      if (!res.ok) throw new Error(`csv HTTP ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${id}-trades.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e:any) {
-      setError(e.message || String(e));
+      return new Date(isoString).toLocaleString();
+    } catch {
+      return isoString;
     }
   };
+
+  if (loading) {
+    return <div style={{ padding: 20 }}>Loading strategy logs...</div>;
+  }
 
   return (
-    <main style={{ padding: 20 }}>
-      <h1>Strategy {id}</h1>
-      <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>API: {apiBase}</div>
-      {loading && <p>Loading…</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+    <div style={{ padding: '0 20px', maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ marginBottom: 24 }}>
+        <button
+          onClick={() => router.push('/')}
+          style={{
+            padding: '8px 16px',
+            border: '1px solid #ddd',
+            borderRadius: 6,
+            background: '#f9f9f9',
+            cursor: 'pointer',
+            fontSize: 14,
+            marginBottom: 12,
+          }}
+        >
+          ← Back to Home
+        </button>
+        <h1 style={{ margin: 0, marginBottom: 8 }}>Strategy {id}</h1>
+        <div style={{ fontSize: 14, color: '#666' }}>Execution logs (last 50 entries)</div>
+      </div>
 
-      <section>
-        <h2>Open position</h2>
-        {position ? (
-          <div>
-            <p>Side: {position.side}</p>
-            <p>Size: {position.size}</p>
-            <p>Avg entry: {position.avg_entry}</p>
-            <p>Unrealized PnL: {position.unrealized_pnl} ({position.unrealized_pnl_pct ?? '—'}%)</p>
-            <p>Last updated: {position.updated_at ?? position.ts ?? '—'}</p>
-          </div>
-        ) : (
-          <p>No open position</p>
-        )}
-      </section>
-
-      <section>
-        <h2>Recent trades</h2>
-        <div style={{ marginBottom: 8 }}>
-          <button onClick={() => { exportCsv(); }}>Export CSV</button>
-          <label style={{ marginLeft: 12 }}>
-            <input type="checkbox" checked={autoRefresh} onChange={(e)=>setAutoRefresh(e.target.checked)} /> Auto-refresh
-          </label>
+      {logs.length === 0 && (
+        <div style={{ fontSize: 14, color: '#999', padding: 16, background: '#f9f9f9', borderRadius: 8 }}>
+          No logs yet. Check back once the strategy runs.
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Pair</th>
-              <th>Side</th>
-              <th>Qty</th>
-              <th>Entry</th>
-              <th>Exit</th>
-              <th>Fee</th>
-              <th>PnL</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trades.map((t) => (
-              <tr key={t.id}>
-                <td>{t.ts}</td>
-                <td>{t.pair}</td>
-                <td>{t.side}</td>
-                <td>{t.qty}</td>
-                <td>{t.entry}</td>
-                <td>{t.exit}</td>
-                <td>{t.fee}</td>
-                <td>{t.pnl}</td>
+      )}
+
+      {logs.length > 0 && (
+        <div style={{ border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead style={{ background: '#f5f5f5' }}>
+              <tr>
+                <th style={{ textAlign: 'left', padding: 12, borderBottom: '1px solid #ddd' }}>Time</th>
+                <th style={{ textAlign: 'left', padding: 12, borderBottom: '1px solid #ddd' }}>Event</th>
+                <th style={{ textAlign: 'left', padding: 12, borderBottom: '1px solid #ddd' }}>Details</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </main>
+            </thead>
+            <tbody>
+              {logs.map((log, idx) => (
+                <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                  <td style={{ padding: 12, borderBottom: '1px solid #eee', whiteSpace: 'nowrap' }}>
+                    {formatTime(log.ts)}
+                  </td>
+                  <td style={{ padding: 12, borderBottom: '1px solid #eee', fontWeight: 600 }}>{log.event}</td>
+                  <td style={{ padding: 12, borderBottom: '1px solid #eee', fontSize: 12, color: '#666' }}>
+                    {log.details ? (
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {JSON.stringify(log.details, null, 2)}
+                      </pre>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Footer disclaimer */}
+      <div
+        style={{
+          fontSize: 11,
+          color: '#999',
+          padding: '16px 0',
+          borderTop: '1px solid #eee',
+          textAlign: 'center',
+          marginTop: 24,
+        }}
+      >
+        <strong>Disclaimer:</strong> Informational only. Verify on-chain. Never DM-first. $MICO is independent and
+        unaffiliated with Microsoft.
+      </div>
+    </div>
   );
 }

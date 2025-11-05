@@ -97,10 +97,12 @@ def seed_database():
         db.close()
 
 # Routers
+from .routes_summary import router as summary_router
 app.include_router(ingest_router)
 app.include_router(read_router)
 app.include_router(metrics_router)
 app.include_router(copy_router)
+app.include_router(summary_router)
 
 if __name__ == "__main__":
     import uvicorn
