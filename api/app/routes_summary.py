@@ -2,9 +2,9 @@
 Summary and home page routes for Mico's World.
 Provides /v1/summary, /v1/strategies, /v1/strategies/{id}/logs
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import json
 import os
 from pathlib import Path
@@ -105,8 +105,18 @@ async def get_summary():
     # Get most recent trade
     most_recent_trade = get_last_trade()
     
+    # updatedAt must be epoch seconds per contract
+    def iso_to_epoch(iso_val: Optional[str]) -> Optional[int]:
+        if not iso_val:
+            return None
+        try:
+            dt = datetime.fromisoformat(iso_val.replace("Z", "+00:00"))
+            return int(dt.timestamp())
+        except Exception:
+            return None
+
     return {
-        "updatedAt": last_updated,
+        "updatedAt": iso_to_epoch(last_updated),
         "regime": regime,
         "status": status,
         "errors": error_count,
@@ -115,52 +125,94 @@ async def get_summary():
 
 
 @router.get("/v1/strategies")
-async def list_strategies():
+async def get_single_strategy():
     """
-    List all strategies with their latest signals and status.
-    Derives from signals state and strategy definitions.
+    Return a single-card strategy summary per minimal contract.
+    Strategy ID: swing-atr (website-only)
     """
     from .services.signals import state as signals_state
-    from .db import SessionLocal
-    from .models import Strategy
-    
-    db = SessionLocal()
-    try:
-        db_strategies = db.query(Strategy).all()
-        
-        result = []
-        signals = signals_state.get("signals", {})
-        
-        for strat in db_strategies:
-            # Try to find latest signal for this strategy's markets
-            latest_signal = None
-            for market in (strat.markets or []):
-                if market in signals:
-                    sig = signals[market]
-                    latest_signal = {
-                        "label": sig.get("label"),
-                        "score": sig.get("score"),
-                        "market": market,
-                        "ts": signals_state.get("last_updated"),
-                    }
-                    break  # Use first matching market
-            
-            # Determine status (Active by default, check if logs show errors)
-            status = strat.status or "Active"
-            last_evaluated = signals_state.get("last_updated")
-            
-            result.append({
-                "id": strat.id,
-                "name": strat.name,
-                "markets": strat.markets or [],
-                "status": status,
-                "lastEvaluated": last_evaluated,
-                "latestSignal": latest_signal,
-            })
-        
-        return result
-    finally:
-        db.close()
+
+    signals = signals_state.get("signals", {})
+    last_updated_iso = signals_state.get("last_updated")
+
+    # Choose a focus market: prefer SOL, then BTC, else any available
+    focus_market = None
+    for candidate in ("SOL", "BTC"):
+        if candidate in signals:
+            focus_market = candidate
+            break
+    if not focus_market and signals:
+        focus_market = list(signals.keys())[0]
+
+    latest_signal = None
+    if focus_market and focus_market in signals:
+        s = signals[focus_market]
+        # Trend mapping: Up/Down based on SMA20 vs SMA50 (directional proxy)
+        trend = {
+            "sma20": "Up" if (s.get("sma20", 0) >= s.get("sma50", 0)) else "Down",
+            "sma50": "Up" if (s.get("sma50", 0) <= s.get("sma20", 0)) else "Down",
+            "rsi14": round(float(s.get("rsi14") or 0.0), 1),
+        }
+        zones = s.get("zones", {})
+        latest_signal = {
+            "label": s.get("label", "Observation"),
+            "score": int(max(0, min(100, s.get("score", 0)))),
+            "market": focus_market,
+            "price": round(float(s.get("price", 0.0)), 2),
+            "trend": trend,
+            "zones": {
+                "deepAccum": round(float(zones.get("deepAccum", 0.0)), 2),
+                "accum": round(float(zones.get("accum", 0.0)), 2),
+                "distrib": round(float(zones.get("distrib", 0.0)), 2),
+                "safeDistrib": round(float(zones.get("safeDistrib", 0.0)), 2),
+            },
+        }
+
+    return {
+        "id": "swing-atr",
+        "name": "Swing ATR",
+        "status": "Active" if latest_signal else "Waiting",
+        "lastEvaluated": last_updated_iso or datetime.now(timezone.utc).isoformat(),
+        "latestSignal": latest_signal,
+    }
+
+
+# Provide an explicit route for the single-card strategy avoiding conflicts
+@router.get("/v1/strategy")
+async def get_single_strategy_card():
+    return await get_single_strategy()
+
+
+def _normalize_log_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize stored log rows to the public contract shape."""
+    out: Dict[str, Any] = {
+        "ts": row.get("ts"),
+        "event": row.get("event") or row.get("level") or "event",
+    }
+    # Prefer explicit fields; fallback to nested details/note
+    if "market" in row:
+        out["market"] = row.get("market")
+    elif isinstance(row.get("details"), dict) and "market" in row["details"]:
+        out["market"] = row["details"].get("market")
+    if "note" in row:
+        out["note"] = row.get("note")
+    elif isinstance(row.get("details"), dict):
+        # Build a compact note from details if available
+        d = row["details"]
+        parts = []
+        if "signal" in d:
+            parts.append(f"label {d.get('signal')}")
+        if "score" in d:
+            parts.append(f"score {d.get('score')}")
+        if "price" in d:
+            parts.append(f"price {d.get('price')}")
+        if parts:
+            out["note"] = ", ".join(parts)
+    if "score" in row:
+        out["score"] = row.get("score")
+    elif isinstance(row.get("details"), dict) and "score" in row["details"]:
+        out["score"] = row["details"].get("score")
+    return out
 
 
 @router.get("/v1/strategies/{strategy_id}/logs")
@@ -169,8 +221,15 @@ async def get_strategy_logs(strategy_id: str, limit: int = 50):
     Get recent logs for a specific strategy.
     Returns empty array if no logs yet.
     """
-    logs = tail_logs(strategy_id, limit)
-    return logs
+    rows = tail_logs(strategy_id, limit)
+    return [_normalize_log_row(r) for r in rows]
+
+
+# Exact path per minimal API contract
+@router.get("/v1/strategies/swing-atr/logs")
+async def get_swing_atr_logs(limit: int = 50):
+    rows = tail_logs("swing-atr", limit)
+    return [_normalize_log_row(r) for r in rows]
 
 
 # Helper function to seed example data for demo purposes
@@ -178,13 +237,83 @@ async def get_strategy_logs(strategy_id: str, limit: int = 50):
 async def add_strategy_log(strategy_id: str, log: Dict[str, Any]):
     """
     Add a log entry for a strategy (for testing/demo).
-    Body: { ts, level, event, market?, action?, price?, size?, note? }
+    Body: { event, market?, note?, score? }
     """
-    if "ts" not in log:
-        log["ts"] = datetime.now(timezone.utc).isoformat()
-    
-    append_log(strategy_id, log)
+    obj: Dict[str, Any] = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "event": log.get("event", "event"),
+    }
+    # Optional fields
+    if log.get("market"):
+        obj["market"] = log["market"]
+    if log.get("note"):
+        obj["note"] = log["note"]
+    if "score" in log:
+        try:
+            obj["score"] = int(log["score"])  # normalize
+        except Exception:
+            pass
+
+    append_log(strategy_id, obj)
     return {"ok": True}
+
+
+@router.get("/v1/strategies/swing-atr/kpis")
+async def get_swing_atr_kpis(window: str = Query("7d", description="Window like 7d, 24h")):
+    """
+    Compute tiny KPIs from recent logs, neutral and safe for public display.
+    Returns { alertsIssued, avgScore, riskSuppressed, medianTimeBetweenSignalsMin }
+    """
+    # Parse window
+    now = datetime.now(timezone.utc)
+    delta = timedelta(days=7)
+    try:
+        if window.endswith("d"):
+            delta = timedelta(days=int(window[:-1]))
+        elif window.endswith("h"):
+            delta = timedelta(hours=int(window[:-1]))
+        elif window.endswith("m"):
+            delta = timedelta(minutes=int(window[:-1]))
+    except Exception:
+        pass
+
+    rows = tail_logs("swing-atr", 500)
+    # Filter by time window
+    def parse_ts(x: str) -> Optional[datetime]:
+        try:
+            return datetime.fromisoformat(x.replace("Z", "+00:00"))
+        except Exception:
+            return None
+
+    rows = [r for r in rows if (parse_ts(r.get("ts")) or now) >= now - delta]
+
+    # alertsIssued: count of strategy_tick events
+    alerts_issued = sum(1 for r in rows if (r.get("event") == "strategy_tick"))
+    # avgScore: average of score when present
+    scores = [int(r.get("score")) for r in rows if isinstance(r.get("score"), (int, float, str)) and str(r.get("score")).isdigit()]
+    avg_score = int(sum(scores) / len(scores)) if scores else 0
+    # riskSuppressed: count events explicitly marked risk_suppressed
+    risk_suppressed = sum(1 for r in rows if r.get("event") == "risk_suppressed")
+    # median time between signals in minutes
+    signal_ts = [parse_ts(r.get("ts")) for r in rows if r.get("event") == "strategy_tick"]
+    signal_ts = [t for t in signal_ts if t is not None]
+    signal_ts.sort()
+    gaps = []
+    for i in range(1, len(signal_ts)):
+        gaps.append((signal_ts[i] - signal_ts[i-1]).total_seconds() / 60.0)
+    gaps.sort()
+    if gaps:
+        mid = len(gaps) // 2
+        median_gap = gaps[mid] if len(gaps) % 2 == 1 else (gaps[mid-1] + gaps[mid]) / 2
+    else:
+        median_gap = 0
+
+    return {
+        "alertsIssued": alerts_issued,
+        "avgScore": avg_score,
+        "riskSuppressed": risk_suppressed,
+        "medianTimeBetweenSignalsMin": int(median_gap),
+    }
 
 
 @router.post("/v1/trades")
