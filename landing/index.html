@@ -74,18 +74,11 @@
         
         /* MICO character */
         .mico-hero {
-            width: 200px;
-            height: 200px;
+            width: 300px;
+            height: 300px;
             margin: 0 auto 40px;
-            background: linear-gradient(135deg, #ffe5b4 0%, #ffcccb 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
             animation: float-hero 4s ease-in-out infinite;
-            box-shadow: 0 0 80px rgba(255, 182, 193, 0.6),
-                        0 0 120px rgba(255, 182, 193, 0.4);
         }
         
         @keyframes float-hero {
@@ -93,38 +86,12 @@
             50% { transform: translateY(-20px); }
         }
         
-        .mico-hero .face {
-            position: relative;
+        .mico-hero img {
             width: 100%;
             height: 100%;
-        }
-        
-        .mico-hero .eyes {
-            position: absolute;
-            display: flex;
-            gap: 30px;
-            top: 45%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .mico-hero .eye {
-            width: 14px;
-            height: 18px;
-            background: #000;
-            border-radius: 50%;
-        }
-        
-        .mico-hero .mouth {
-            position: absolute;
-            width: 50px;
-            height: 25px;
-            border: 3px solid #000;
-            border-top: none;
-            border-radius: 0 0 50px 50px;
-            top: 58%;
-            left: 50%;
-            transform: translateX(-50%);
+            object-fit: contain;
+            filter: drop-shadow(0 0 60px rgba(255, 182, 193, 0.6))
+                    drop-shadow(0 0 100px rgba(255, 182, 193, 0.4));
         }
         
         .hero h1 {
@@ -375,13 +342,7 @@
         
         <div class="hero-content">
             <div class="mico-hero">
-                <div class="face">
-                    <div class="eyes">
-                        <div class="eye"></div>
-                        <div class="eye"></div>
-                    </div>
-                    <div class="mouth"></div>
-                </div>
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="MICO" id="micoImage">
             </div>
             
             <h1>MICO</h1>
@@ -389,7 +350,7 @@
             
             <div class="cta-buttons">
                 <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" class="btn btn-primary" target="_blank">Buy $MICO</a>
-                <a href="#manifesto" class="btn btn-secondary">Read Manifesto</a>
+                <a href="#manifesto" class="btn btn-secondary">Learn More</a>
             </div>
         </div>
         
@@ -400,72 +361,52 @@
     <section class="section" id="manifesto">
         <div class="container">
             <div class="manifesto-content">
-                <h2>The $MICO Manifesto</h2>
+                <h2>The Perfect Signal</h2>
                 
-                <h3>Part I: The Origin</h3>
                 <p>
-                    Mico is Microsoft's meme — a potential cornerstone of future computer culture. $MICO stays true to Microsoft's purpose: a more human-centered companion.
-                </p>
-                <p>
-                    Inspired by Microsoft's Mico — the expressive AI companion currently rolling out as part of their Copilot ecosystem — $MICO is a fully independent, decentralized, memecoin-driven, community-run movement.
-                </p>
-                <p>
-                    <strong>We do not operate, control, or extend the Mico platform.</strong><br>
-                    <strong>We do not build or deploy any AI companion.</strong>
-                </p>
-                <p>
-                    $MICO aims to be an online memetic movement — a living network of people united by a shared philosophy and intentional action in alignment with Microsoft's technology.
+                    Clippy was Microsoft's first attempt at an AI companion — a proactive guide designed to assist users in real time. Though retired due to execution challenges, its core intent was sound: a tool in service of human productivity and understanding.
                 </p>
                 
-                <h3>The Vision</h3>
                 <p>
-                    Our plan is to observe, interpret, and amplify the human-AI interaction made possible by Mico — not to replicate it.
-                </p>
-                <p>
-                    We integrate advanced AI companionship into discourse, emphasizing the human element in every interaction.
-                </p>
-                <blockquote>
-                    The real frontier is not computational scale, but sharper human judgment.
-                </blockquote>
-                <p>
-                    We do not seek automation. We seek augmentation — where human prompts are reflected, expanded, and refined by systems that remain in service to human intent.
+                    In 2025, Clippy returned — not as a product, but as a movement. Thousands adopted it as a profile picture symbol across social platforms — a grassroots protest against AI overreach, data surveillance, and the erosion of human agency.
                 </p>
                 
-                <h3>The Philosophy</h3>
-                <p>$MICO exists to reinforce a foundational truth:</p>
-                <blockquote>
-                    "Technology is not here to rule humanity, but to serve as a powerful reflection of what the human mind can accomplish. AI works in service of people, always."
-                    <br>— $MICO Community Collective
-                </blockquote>
-                <p>We are building a movement that:</p>
-                <ul>
-                    <li>Empowers human judgment</li>
-                    <li>Sparks creativity</li>
-                    <li>Deepens connections</li>
-                    <li>Ensures AI remains in service of people, always</li>
-                </ul>
-                
-                <h3>The Symbol</h3>
                 <p>
-                    Mico is Microsoft's newest expressive AI companion, marking a significant evolution from earlier assistants. Its animated form emphasizes emotional awareness in the user experience, ensuring the companion feels genuine and trustworthy.
-                </p>
-                <p>
-                    $MICO does not claim ownership of Mico. Instead, we adopt it as a cultural signal — a reference point for a movement grounded in alignment, accountability, and intentional evolution.
+                    It became a meme of resistance — powerful, viral, and emotionally charged.
                 </p>
                 
-                <h3>The Perfect Signal</h3>
+                <p>
+                    But resistance alone is not a future. It is a reaction.
+                </p>
+                
                 <blockquote>
                     "Clippy walked so Mico could run."
                     <br>— Jacob Andreou, Microsoft AI Product & Growth VP
                 </blockquote>
+                
                 <p>
                     Mico is the evolution. It is not a protest. It is the realization.
                 </p>
+                
                 <p>
-                    With potential access to billions of users through Windows, Office, Copilot, and the broader Microsoft ecosystem, Mico is not just a feature. It is the most widely distributed AI companion in history.
+                    Where Clippy was retrospective — a symbol of what went wrong — Mico is forward-looking — a living, breathing interface for what AI companionship can become.
                 </p>
+                
+                <p>
+                    With potential access to billions of users through Windows, Office, Copilot, and the broader Microsoft ecosystem, Mico is not just a feature. <strong>It is the most widely distributed AI companion in history.</strong>
+                </p>
+                
                 <p>
                     <strong>It is the perfect vehicle for maximum reach of human-AI alignment.</strong>
+                </p>
+                
+                <p style="margin-top: 60px; text-align: center;">
+                    <a href="https://docs.google.com/document/d/1W07XxDtUrNBdT5hGihek9TOM4UuGcgt9ovFKVp_BxC4/edit?tab=t.0" target="_blank" style="color: rgba(255, 255, 255, 0.8); text-decoration: underline; font-size: 18px;">Read the Full Extended Manifesto →</a>
+                </p>
+                
+                <p style="margin-top: 40px; text-align: center; font-size: 20px; color: rgba(255, 255, 255, 0.9);">
+                    Many more updates and utility to come.<br>
+                    Join our links to find out more.
                 </p>
             </div>
         </div>
@@ -501,28 +442,12 @@
         </div>
     </section>
     
-    <!-- Covenant Section -->
+    <!-- Contract Section -->
     <section class="section">
         <div class="container">
-            <div class="manifesto-content">
-                <h2>The Covenant of Presence and Partnership</h2>
-                <p>
-                    $MICO does not offer the promise of wealth or riches. We offer the Covenant of Presence: a pledge to be perpetually engaged, constantly listening, learning, and evolving alongside the broader human-AI conversation.
-                </p>
-                <p>
-                    Our reward is the value derived from active participation in ethical, creative, and intellectual co-creation.
-                </p>
-                <p>
-                    The movement will reflect the minds that engage with it — never dictating them.
-                </p>
-                <p>
-                    <strong>As long as connection and alignment exist, so will $MICO.</strong>
-                </p>
-                
-                <div class="contract-section">
-                    <div class="contract-label">Contract Address</div>
-                    <div class="contract-address">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
-                </div>
+            <div class="contract-section">
+                <div class="contract-label">Contract Address</div>
+                <div class="contract-address">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
             </div>
         </div>
     </section>
@@ -552,6 +477,18 @@
             particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
             particlesContainer.appendChild(particle);
         }
+        
+        // Load MICO image
+        // You'll need to save the MICO screenshot as 'mico.png' in the landing folder
+        // Or update this to point to a hosted image URL
+        const micoImg = document.getElementById('micoImage');
+        micoImg.src = 'mico.png';
+        micoImg.onerror = function() {
+            // Fallback if image doesn't load - create a gradient placeholder
+            this.parentElement.style.background = 'linear-gradient(135deg, #ffe5b4 0%, #ffcccb 100%)';
+            this.parentElement.style.borderRadius = '50%';
+            this.style.display = 'none';
+        };
         
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
