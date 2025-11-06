@@ -476,9 +476,14 @@
         
         /* Footer */
         footer {
-            padding: 60px 20px;
+            padding: 80px 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.6)), url('footer-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
         }
         
         .footer-links {
@@ -513,7 +518,7 @@
             .hero p { font-size: 16px; }
             .mico-hero { width: 220px; height: 220px; }
             .mico-placeholder { width: 200px; height: 200px; font-size: 80px; }
-            .cyber-info { padding: 30px 25px; max-width: 90%; }
+            .cyber-info { padding: 30px 25px; max-width: 90%; margin-top: 60px !important; }
             .cyber-info .value { font-size: 28px; }
             .cyber-info .destination { font-size: 18px; }
             .section-title { font-size: 32px; }
@@ -521,6 +526,12 @@
             .manifesto-content h2 { font-size: 32px; }
             .cta-buttons { flex-direction: column; align-items: center; }
             .btn { width: 100%; max-width: 280px; text-align: center; }
+            .side-mico { right: 16px; bottom: 16px; padding: 20px 16px; }
+            .side-mico iframe { width: 180px; height: 320px; }
+            .side-mico .label { font-size: 24px; }
+            .side-mico .subtext { font-size: 14px; }
+            .hero-content { transform: none !important; }
+            .scroll-indicator { display: none; }
         }
     </style>
 </head>
@@ -643,7 +654,7 @@
     </section>
     
     <!-- Footer -->
-    <footer style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.6)), url('footer-bg.png'); background-size: cover; background-position: center;">
+    <footer>
         <div class="footer-links">
             <a href="https://x.com/mico_on_sol" target="_blank">X</a>
             <a href="https://discord.gg/u5eXg4GHQ" target="_blank">Discord</a>
