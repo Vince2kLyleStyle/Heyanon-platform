@@ -4,6 +4,7 @@ from html import escape
 from fastapi.middleware.cors import CORSMiddleware
 import time
 import aiohttp
+import asyncio
 from datetime import datetime, timezone
 from config import COINS, CACHE_TTL_SEC, DISABLE_SIGNALS, API_ORIGINS
 from indicators import build_signals_snapshot, compute_regime
@@ -24,14 +25,67 @@ class Cache:
     status = "ok"  # ok | degraded | paused
     errors = 0
     regime = "Neutral"
+    history = {}  # {market: [log_entry1, log_entry2, ...]} - last 10 per market
 
 
 cache = Cache()
 
 
+async def refresh_signals_task():
+    """Background task that refreshes signals every 60 seconds and appends to history."""
+    await asyncio.sleep(5)  # initial delay
+    while True:
+        try:
+            if not DISABLE_SIGNALS:
+                regime = await compute_regime(app.state.session)
+                signals = await build_signals_snapshot(app.state.session, COINS, regime)
+                now = int(time.time())
+                cache.ts = now
+                cache.data = signals
+                cache.regime = regime
+                cache.status = "ok"
+                cache.errors = 0
+                
+                # Append to history for each market
+                iso_ts = datetime.fromtimestamp(now, tz=timezone.utc).isoformat()
+                for market, signal in signals.items():
+                    log_entry = {
+                        "ts": iso_ts,
+                        "event": "evaluation",
+                        "market": market,
+                        "note": f"score {signal.get('score', 0)} • label {signal.get('label', 'Observation')} • price ${signal.get('price', 0):.2f}",
+                        "score": signal.get("score", 0),
+                        "label": signal.get("label", "Observation"),
+                        "price": signal.get("price", 0),
+                        "level": "info",
+                        "details": {
+                            "sma20": signal.get("sma20", 0),
+                            "sma50": signal.get("sma50", 0),
+                            "rsi14": signal.get("rsi14", 50),
+                            "atr14": signal.get("atr14", 0),
+                            "vol_spike": signal.get("vol_spike", False),
+                            "zones": signal.get("zones", {}),
+                        }
+                    }
+                    if market not in cache.history:
+                        cache.history[market] = []
+                    # Add new entry at the end
+                    cache.history[market].append(log_entry)
+                    # Keep only last 10
+                    if len(cache.history[market]) > 10:
+                        cache.history[market] = cache.history[market][-10:]
+        except Exception:
+            cache.errors += 1
+            cache.status = "degraded"
+        
+        await asyncio.sleep(60)  # refresh every 60 seconds
+
+
 @app.on_event("startup")
 async def startup():
     app.state.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
+    # Start background refresh task
+    asyncio.create_task(refresh_signals_task())
 
 
 @app.on_event("shutdown")
@@ -356,7 +410,15 @@ async def strategy_detail(strategy_id: str):
 
 @app.get("/v1/strategies/{strategy_id}/logs")
 async def strategy_logs(strategy_id: str, limit: int = 50):
-    """Get strategy evaluation logs"""
+    """Get strategy evaluation logs - returns history (newest first)"""
+    market = strategy_id.replace("signals-", "").upper()
+    
+    # Return history if available, otherwise return current reading
+    if market in cache.history and cache.history[market]:
+        # Return newest first (reverse order)
+        return list(reversed(cache.history[market][-limit:]))
+    
+    # Fallback: return current reading if no history yet
     now = time.time()
     if cache.data and now - cache.ts < CACHE_TTL_SEC:
         signals = cache.data
@@ -371,14 +433,9 @@ async def strategy_logs(strategy_id: str, limit: int = 50):
         except Exception:
             signals = cache.data or {}
     
-    # Extract market from strategy_id
-    market = strategy_id.replace("signals-", "").upper()
     signal = signals.get(market, {})
-    
-    from datetime import datetime, timezone
     timestamp_iso = datetime.fromtimestamp(cache.ts or now, tz=timezone.utc).isoformat() if cache.ts else datetime.now(timezone.utc).isoformat()
     
-    # Return current signal as a log entry with ISO timestamp
     log_entry = {
         "ts": timestamp_iso,
         "event": "evaluation",
