@@ -1,12 +1,7 @@
+# Production requirements - no secrets, no Telegram/Discord/Sheets
 fastapi==0.114.2
 uvicorn[standard]==0.30.6
-pydantic==2.8.2
-SQLAlchemy==2.0.35
-psycopg2-binary==2.9.10
-python-dotenv==1.0.1
-redis==5.0.7
-alembic==1.13.2
-prometheus_client==0.16.0
-httpx==0.27.0
+aiohttp
 pandas==2.2.3
 numpy>=2.0.0
+python-dotenv==1.0.1

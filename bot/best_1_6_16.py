@@ -14,6 +14,8 @@ from typing import Optional
 # ===== CONFIG =====
 SYMBOLS = {
     "BTC": "BTC-USD",
+    "SOL": "SOL-USD",
+    "PUMP": "BTC-USD",  # Using BTC as proxy until PUMP data available
 }
 
 RISK_PER_TRADE = float(os.getenv("RISK_PER_TRADE", "0.015"))

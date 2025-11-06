@@ -1,10 +1,10 @@
 {
-  "lastEvaluated": "2025-11-06T02:33:21.676001+00:00",
+  "lastEvaluated": "2025-11-06T03:05:15.512789+00:00",
   "latestSignal": {
     "label": "Distribution",
     "score": 60,
-    "market": "BTC",
-    "price": 102950.94,
+    "market": "PUMP",
+    "price": 103487.65,
     "trend": {
       "sma20": "Up",
       "sma50": "Up",

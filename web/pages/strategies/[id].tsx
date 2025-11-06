@@ -111,7 +111,7 @@ export default function StrategyDetail() {
     fetchLogs();
     fetchCard();
     fetchSummary();
-    const interval = setInterval(() => { fetchLogs(); fetchCard(); fetchSummary(); }, 60000); // Poll every 60s
+    const interval = setInterval(() => { fetchLogs(); fetchCard(); fetchSummary(); }, 30000); // Poll every 30s for real-time logs
     return () => clearInterval(interval);
   }, [id, apiBase]);
 

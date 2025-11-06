@@ -29,23 +29,16 @@ services:
     build: ../api
     image: heyanon_api:ci
     container_name: heyanon_api
-    env_file:
-      - ../api/.env
     environment:
-      - API_SHARED_SECRET=supersecret
-      - API_KEY=supersecret
+      - CACHE_TTL_SEC=60
+      - DISABLE_SIGNALS=0
+      - API_ORIGINS=http://localhost:3000
     ports:
       - "8000:8000"
     volumes:
-      - ../api/app:/app/app:rw
-      - ../api/data:/app/data:rw
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - ../api:/app:rw
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys,urllib.request;print(urllib.request.urlopen('http://localhost:8000/health', timeout=3).read());sys.exit(0)"]
+      test: ["CMD", "python", "-c", "import sys,urllib.request;print(urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read());sys.exit(0)"]
       interval: 10s
       timeout: 3s
       retries: 10
