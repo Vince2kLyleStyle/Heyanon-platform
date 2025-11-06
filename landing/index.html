@@ -18,7 +18,78 @@
             overflow-x: hidden;
         }
         
-        /* Hero section with video-like background */
+        /* Animated gradient background - inspired by MICO's colorful aesthetic */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Floating orbs overlay */
+        .orbs-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float-orb 20s ease-in-out infinite;
+        }
+        
+        .orb1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 182, 193, 0.8), transparent);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .orb2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(147, 112, 219, 0.8), transparent);
+            top: 50%;
+            right: 10%;
+            animation-delay: 7s;
+        }
+        
+        .orb3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 209, 220, 0.8), transparent);
+            bottom: 10%;
+            left: 40%;
+            animation-delay: 14s;
+        }
+        
+        @keyframes float-orb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(80px, -80px) scale(1.1); }
+            66% { transform: translate(-80px, 80px) scale(0.9); }
+        }
+        
+        /* Hero section */
         .hero {
             position: relative;
             height: 100vh;
@@ -26,41 +97,6 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-        }
-        
-        /* Animated gradient background */
-        .hero-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, #1a237e 0%, #000428 50%, #000000 100%);
-            z-index: 0;
-        }
-        
-        /* Animated particles */
-        .particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            animation: float-particle 20s infinite;
-        }
-        
-        @keyframes float-particle {
-            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
         }
         
         /* Hero content */
@@ -74,11 +110,32 @@
         
         /* MICO character */
         .mico-hero {
-            width: 300px;
-            height: 300px;
+            width: 350px;
+            height: 350px;
             margin: 0 auto 40px;
             position: relative;
             animation: float-hero 4s ease-in-out infinite;
+            background: url('https://raw.githubusercontent.com/microsoft/CopilotAdventures/main/Images/Mico/mico-hero.png') no-repeat center center;
+            background-size: contain;
+        }
+        
+        /* Fallback - MICO with glowing effect */
+        .mico-hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, 
+                rgba(255, 229, 180, 1) 0%,
+                rgba(255, 204, 203, 1) 50%,
+                transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(20px);
+            animation: pulse-glow 4s ease-in-out infinite;
         }
         
         @keyframes float-hero {
@@ -86,20 +143,17 @@
             50% { transform: translateY(-20px); }
         }
         
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
+        }
+        
         .mico-hero img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 0 60px rgba(255, 182, 193, 0.6))
-                    drop-shadow(0 0 100px rgba(255, 182, 193, 0.4));
-        }
-        
-        .hero h1 {
-            font-size: 64px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            letter-spacing: -1px;
-            line-height: 1.1;
+            filter: drop-shadow(0 0 60px rgba(255, 182, 193, 0.8))
+                    drop-shadow(0 0 100px rgba(255, 182, 193, 0.6));
         }
         
         .hero p {
@@ -109,6 +163,16 @@
             line-height: 1.6;
         }
         
+        
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        
+        
         .cta-buttons {
             display: flex;
             gap: 20px;
@@ -116,35 +180,43 @@
             flex-wrap: wrap;
         }
         
+        
         .btn {
-            padding: 16px 40px;
-            font-size: 16px;
+            padding: 18px 48px;
+            font-size: 17px;
             font-weight: 600;
-            border-radius: 4px;
+            border-radius: 50px;
             text-decoration: none;
             transition: all 0.3s;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
+        
         .btn-primary {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.95);
             color: #000;
         }
         
         .btn-primary:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateY(-2px);
+            background: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
         }
         
         .btn-secondary {
-            background: transparent;
+            background: rgba(255, 255, 255, 0.15);
             color: #fff;
-            border: 2px solid #fff;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
         }
         
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #fff;
+            transform: translateY(-3px);
         }
+        
         
         /* Scroll indicator */
         .scroll-indicator {
@@ -165,26 +237,23 @@
         .scroll-indicator::after {
             content: '↓';
             font-size: 32px;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.8);
         }
+        
         
         /* Content sections */
         .section {
             padding: 120px 20px;
             position: relative;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
         }
+        
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-        }
-        
-        .section-title {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 60px;
-            text-align: center;
-            letter-spacing: -1px;
         }
         
         /* Manifesto section */
@@ -335,14 +404,19 @@
     </style>
 </head>
 <body>
+    <!-- Animated gradient background -->
+    <div class="animated-bg"></div>
+    <div class="orbs-overlay">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+    
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-bg"></div>
-        <div class="particles" id="particles"></div>
-        
         <div class="hero-content">
             <div class="mico-hero">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="MICO" id="micoImage">
+                <img src="https://i.imgur.com/8X9vK7p.png" alt="MICO" onerror="this.style.display='none'">
             </div>
             
             <h1>MICO</h1>
@@ -356,8 +430,6 @@
         
         <div class="scroll-indicator"></div>
     </section>
-    
-    <!-- Manifesto Section -->
     <section class="section" id="manifesto">
         <div class="container">
             <div class="manifesto-content">
@@ -412,37 +484,8 @@
         </div>
     </section>
     
-    <!-- Values Section -->
-    <section class="section" style="background: rgba(255, 255, 255, 0.02);">
-        <div class="container">
-            <h2 class="section-title">The 5 $MICO Values</h2>
-            
-            <div class="values-grid">
-                <div class="value-card">
-                    <h3>1. Feel First</h3>
-                    <p>AI should read and respect human emotion</p>
-                </div>
-                <div class="value-card">
-                    <h3>2. Ask, Don't Tell</h3>
-                    <p>Promote curiosity over conclusions</p>
-                </div>
-                <div class="value-card">
-                    <h3>3. Show Your Work</h3>
-                    <p>Demand transparency in AI behavior</p>
-                </div>
-                <div class="value-card">
-                    <h3>4. Humans Decide</h3>
-                    <p>Human judgment is the final filter</p>
-                </div>
-                <div class="value-card">
-                    <h3>5. Trust Is Earned</h3>
-                    <p>Privacy, safety, and ethics are non-negotiable</p>
-                </div>
-            </div>
-        </div>
-    </section>
     
-    <!-- Contract Section -->
+    <!-- Manifesto Section -->
     <section class="section">
         <div class="container">
             <div class="contract-section">
@@ -467,29 +510,6 @@
     </footer>
     
     <script>
-        // Generate floating particles
-        const particlesContainer = document.getElementById('particles');
-        for (let i = 0; i < 50; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 20 + 's';
-            particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
-            particlesContainer.appendChild(particle);
-        }
-        
-        // Load MICO image
-        // You'll need to save the MICO screenshot as 'mico.png' in the landing folder
-        // Or update this to point to a hosted image URL
-        const micoImg = document.getElementById('micoImage');
-        micoImg.src = 'mico.png';
-        micoImg.onerror = function() {
-            // Fallback if image doesn't load - create a gradient placeholder
-            this.parentElement.style.background = 'linear-gradient(135deg, #ffe5b4 0%, #ffcccb 100%)';
-            this.parentElement.style.borderRadius = '50%';
-            this.style.display = 'none';
-        };
-        
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
