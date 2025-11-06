@@ -102,21 +102,37 @@
         /* Floating side MICO panel */
         .side-mico {
             position: fixed;
-            right: 24px;
-            bottom: 24px;
+            right: 32px;
+            bottom: 32px;
             z-index: 12;
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 10px 14px;
-            border-radius: 14px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            gap: 24px;
+            background: rgba(0,0,0,0.45);
+            border: 2px solid #00ffe7;
+            padding: 22px 32px;
+            border-radius: 22px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 40px rgba(0,255,255,0.18), 0 2px 40px rgba(0,0,0,0.45);
         }
-    .side-mico img { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 0 22px rgba(255,255,255,0.45)); }
-        .side-mico .label { font-weight: 800; letter-spacing: 1px; font-size: 18px; }
+        .side-mico img { width: 144px; height: 144px; object-fit: contain; filter: drop-shadow(0 0 32px #00ffe7) drop-shadow(0 0 60px #4facfe); }
+        .side-mico .label {
+            font-family: 'Courier New', monospace;
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: 32px;
+            color: #00ffe7;
+            text-shadow: 0 0 18px #4facfe, 0 0 8px #00ffe7, 0 2px 12px #000;
+            text-transform: uppercase;
+        }
+        .side-mico .subtext {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            text-shadow: 0 0 8px #00ffe7, 0 2px 8px #000;
+        }
         
         /* Hero background image */
         .hero-bg {
@@ -195,7 +211,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
         @media (min-width: 992px) {
-            .cyber-info { margin-top: 140px; }
+            .cyber-info { margin-top: 220px; }
         }
         
         .cyber-info h3 {
@@ -636,7 +652,10 @@
     </footer>
     <div class="side-mico">
         <img src="clippy-forms.png" alt="MICO Forms">
-        <div class="label">$MICO</div>
+        <div>
+            <div class="label">$MICO</div>
+            <div class="subtext">Human + AI empowerment.</div>
+        </div>
     </div>
     
     <script>
