@@ -99,6 +99,25 @@
             overflow: hidden;
         }
         
+        /* Floating side MICO panel */
+        .side-mico {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 12;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 14px;
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+        .side-mico img { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 18px rgba(255,255,255,0.35)); }
+        .side-mico .label { font-weight: 800; letter-spacing: 1px; font-size: 18px; }
+        
         /* Hero background image */
         .hero-bg {
             position: absolute;
@@ -494,8 +513,6 @@
     <section class="hero">
         <div class="hero-bg"></div>
         <div class="hero-content">
-            <img src="clippy-forms.png" alt="MICO Evolution" style="width: 700px; max-width: 92vw; height: auto; margin-bottom: 50px; filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.35)) drop-shadow(0 0 120px rgba(255,255,255,0.15)); animation: float 4s ease-in-out infinite; mix-blend-mode: screen; opacity: 0.85;">
-            
             <h1>MICO</h1>
             <p>A Vision for Co-Creation and Human-Centered Intelligence</p>
             
@@ -614,6 +631,10 @@
             <p>&gt; This is a memecoin for cultural movement. Always DYOR.</p>
         </div>
     </footer>
+    <div class="side-mico">
+        <img src="mico.png" alt="$MICO">
+        <div class="label">$MICO</div>
+    </div>
     
     <script>
         // Smooth scroll for anchor links
