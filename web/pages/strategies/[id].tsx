@@ -63,6 +63,12 @@ export default function StrategyDetail() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const apiBase = resolveApiBase();
 
+  // Safe number formatter to avoid .toFixed on undefined/null
+  const fmt = (v: any, digits = 2) => {
+    const n = typeof v === 'number' ? v : Number.isFinite(Number(v)) ? Number(v) : NaN;
+    return Number.isFinite(n) ? n.toFixed(digits) : '—';
+  };
+
   useEffect(() => {
     if (!id) return;
 
@@ -89,7 +95,7 @@ export default function StrategyDetail() {
 
     const fetchCard = async () => {
       try {
-        const res = await fetch(`${apiBase}/v1/strategy`, { cache: 'no-store' });
+        const res = await fetch(`${apiBase}/v1/strategies/${id}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setCard(data);
@@ -168,15 +174,15 @@ export default function StrategyDetail() {
           </div>
           <div>
             <div style={{ color: '#999' }}>Market • Price</div>
-            <div><strong>{card?.latestSignal ? `${card.latestSignal.market} • $${card.latestSignal.price.toFixed(2)}` : '—'}</strong></div>
+            <div><strong>{card?.latestSignal ? `${card.latestSignal.market} • $${fmt(card.latestSignal.price, 2)}` : '—'}</strong></div>
           </div>
           <div>
             <div style={{ color: '#999' }}>Trend</div>
-            <div><strong>{card?.latestSignal ? `SMA20 ${card.latestSignal.trend.sma20} • SMA50 ${card.latestSignal.trend.sma50} • RSI ${card.latestSignal.trend.rsi14.toFixed(1)}` : '—'}</strong></div>
+            <div><strong>{card?.latestSignal ? `SMA20 ${card.latestSignal.trend.sma20} • SMA50 ${card.latestSignal.trend.sma50} • RSI ${fmt(card.latestSignal.trend.rsi14, 1)}` : '—'}</strong></div>
           </div>
           <div>
             <div style={{ color: '#999' }}>Zones</div>
-            <div><strong>{card?.latestSignal ? `${card.latestSignal.zones.deepAccum.toFixed(2)} | ${card.latestSignal.zones.accum.toFixed(2)} | ${card.latestSignal.zones.distrib.toFixed(2)} | ${card.latestSignal.zones.safeDistrib.toFixed(2)}` : '—'}</strong></div>
+            <div><strong>{card?.latestSignal && card.latestSignal.zones ? `${fmt(card.latestSignal.zones.deepAccum, 2)} | ${fmt(card.latestSignal.zones.accum, 2)} | ${fmt(card.latestSignal.zones.distrib, 2)} | ${fmt(card.latestSignal.zones.safeDistrib, 2)}` : '—'}</strong></div>
           </div>
         </div>
 
@@ -187,7 +193,7 @@ export default function StrategyDetail() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600 }}>
-                  {summary.mostRecentTrade.action} • {summary.mostRecentTrade.market} • ${summary.mostRecentTrade.price.toFixed(2)}
+                  {summary.mostRecentTrade.action} • {summary.mostRecentTrade.market} • ${fmt(summary.mostRecentTrade.price, 2)}
                 </div>
                 <div style={{ fontSize: 12, color: '#999' }}>{new Date(summary.mostRecentTrade.ts).toLocaleString()}</div>
               </div>
