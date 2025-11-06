@@ -27,7 +27,7 @@ type SignalsPayload = {
 };
 
 function resolveApiBase(): string {
-  const envVal = process.env.NEXT_PUBLIC_API_URL as string | undefined;
+  const envVal = (process.env.NEXT_PUBLIC_API_URL as string | undefined) || (process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined);
   if (envVal && envVal.trim().length > 0) return envVal;
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;

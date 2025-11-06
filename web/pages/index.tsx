@@ -37,7 +37,7 @@ type Strategy = {
 };
 
 function resolveApiBase(): string {
-  const envVal = process.env.NEXT_PUBLIC_API_URL as string | undefined;
+  const envVal = (process.env.NEXT_PUBLIC_API_URL as string | undefined) || (process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined);
   if (envVal && envVal.trim().length > 0) return envVal;
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
@@ -146,6 +146,10 @@ export default function Home() {
           {error && (
             <span style={{ fontSize: 12, color: '#f44336' }}>Error: {error}</span>
           )}
+        </div>
+        {/* Quick link to server-rendered table */}
+        <div style={{ marginTop: 8, fontSize: 13 }}>
+          <a href={`${apiBase}/view`} target="_blank" rel="noreferrer">Open server-rendered signals table (/view)</a>
         </div>
       </div>
 
