@@ -4,6 +4,7 @@ from html import escape
 from fastapi.middleware.cors import CORSMiddleware
 import time
 import aiohttp
+from datetime import datetime, timezone
 from config import COINS, CACHE_TTL_SEC, DISABLE_SIGNALS, API_ORIGINS
 from indicators import build_signals_snapshot, compute_regime
 
@@ -174,6 +175,12 @@ async def view_home():
     # Ensure cache is warm
     await signals()
     ts, regime, sigs = _get_signals_from_cache()
+    # Human-readable local time for header
+    try:
+        local_ts = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
+        human_ts = local_ts.strftime("%I:%M:%S %p").lstrip("0")
+    except Exception:
+        human_ts = str(ts)
     rows = []
     for m, s in sigs.items():
         risk = COINS.get(m, {}).get("risk", "medium")
@@ -194,12 +201,18 @@ async def view_home():
     <html><head><title>MICO Signals</title><meta charset='utf-8' /></head>
     <body style='font-family:Arial, sans-serif; padding:16px;'>
       <h2>MICO Signals</h2>
-      <div>Updated: {ts} • Regime: {escape(regime)} • Status: {escape(cache.status)}</div>
+            <div>Updated: {human_ts} • Regime: {escape(regime)} • Status: {escape(cache.status)}</div>
       <div style='margin:12px 0;'>This is a minimal HTML view served by the API.</div>
       {table}
     </body></html>
     """
     return HTMLResponse(content=html)
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+        """Serve the minimal signals table as the main page."""
+        return await view_home()
 
 
 @app.get("/view/strategies/{strategy_id}", response_class=HTMLResponse)
@@ -208,6 +221,11 @@ async def view_strategy(strategy_id: str):
     # Ensure cache is warm
     await signals()
     ts, regime, sigs = _get_signals_from_cache()
+    try:
+        local_ts = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
+        human_ts = local_ts.strftime("%I:%M:%S %p").lstrip("0")
+    except Exception:
+        human_ts = str(ts)
     market = strategy_id.replace("signals-", "").upper()
     s = sigs.get(market, {})
     price = s.get("price", 0)
@@ -221,7 +239,7 @@ async def view_strategy(strategy_id: str):
     <body style='font-family:Arial, sans-serif; padding:16px;'>
       <a href='/view'>&larr; Back</a>
       <h2>{escape(market)} Signals</h2>
-      <div>Updated: {ts} • Regime: {escape(regime)} • Status: {escape(cache.status)}</div>
+            <div>Updated: {human_ts} • Regime: {escape(regime)} • Status: {escape(cache.status)}</div>
       <h3 style='margin-top:16px;'>Current Evaluation</h3>
       <ul>
         <li>Label: <strong>{escape(str(label))}</strong></li>
