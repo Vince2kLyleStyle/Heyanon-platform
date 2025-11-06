@@ -180,16 +180,14 @@ async def get_summary():
             return int(dt.timestamp())
         except Exception:
             return None
-
+    
     return {
-        "updatedAt": iso_to_epoch(last_updated),
+        "updatedAt": last_updated,  # Return ISO string for frontend display
         "regime": regime,
         "status": "degraded" if status == "Error" else "ok",
         "errors": 1 if status == "Error" else 0,
         "mostRecentTrade": most_recent_trade,
     }
-
-
 @router.get("/v1/strategies/swing-perp-16h")
 async def get_strategy_summary():
     """
@@ -227,8 +225,13 @@ async def get_strategy_summary():
 # Alias routes for backward compatibility
 @router.get("/v1/strategies")
 async def get_single_strategy():
-    """Legacy route - redirects to canonical strategy"""
-    return await get_strategy_summary()
+    """
+    Legacy route - returns array of strategies for homepage.
+    Frontend expects array or {items: []} format.
+    """
+    strategy = await get_strategy_summary()
+    # Return as array for frontend compatibility
+    return [strategy]
 
 
 @router.get("/v1/strategy")
