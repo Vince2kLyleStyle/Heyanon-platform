@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MICO - Market Intelligence & Crypto Observation</title>
+    <title>$MICO - Market Intelligence & Crypto Observation</title>
     <style>
         * {
             margin: 0;
@@ -12,141 +12,177 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            line-height: 1.8;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 60px 20px;
             flex: 1;
         }
         
         header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 80px;
             padding-top: 40px;
         }
         
+        .logo {
+            font-size: 120px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.8));
+        }
+        
         h1 {
-            font-size: 48px;
+            font-size: 64px;
             font-weight: 700;
-            letter-spacing: -1px;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            color: #0f0;
+            text-transform: uppercase;
         }
         
         .tagline {
             font-size: 18px;
-            color: #999;
+            color: #0a0;
             font-weight: 400;
+            letter-spacing: 2px;
+        }
+        
+        .nav-links {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .nav-links a {
+            color: #0f0;
+            text-decoration: none;
+            padding: 0 15px;
+            border-right: 1px solid #0f0;
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:last-child {
+            border-right: none;
+        }
+        
+        .nav-links a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .info-block {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #0f0;
+            padding: 40px;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+        
+        .info-block h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            color: #0f0;
+        }
+        
+        .info-block p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 2;
+            color: #0d0;
+        }
+        
+        .ticker {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            letter-spacing: 8px;
+        }
+        
+        .contract {
+            font-size: 12px;
+            word-break: break-all;
+            color: #0a0;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #0f0;
+        }
+        
+        .destination {
+            font-size: 32px;
+            margin: 40px 0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
         }
         
         .manifesto {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 32px;
-            margin-bottom: 40px;
+            text-align: left;
+            padding: 40px;
+            border: 2px solid #0f0;
+            background: rgba(0, 255, 0, 0.03);
+            margin-bottom: 60px;
         }
         
-        .manifesto h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #fff;
+        .manifesto h3 {
+            font-size: 18px;
+            margin-bottom: 30px;
+            letter-spacing: 3px;
+            color: #0f0;
         }
         
         .manifesto p {
-            margin-bottom: 16px;
-            color: #ccc;
-            font-size: 16px;
-        }
-        
-        .manifesto p:last-child {
-            margin-bottom: 0;
-        }
-        
-        .links {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-        
-        .link-card {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 24px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.2s ease;
-            display: block;
-        }
-        
-        .link-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-        }
-        
-        .link-card h3 {
-            font-size: 20px;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-        
-        .link-card p {
-            color: #999;
+            margin-bottom: 20px;
             font-size: 14px;
+            line-height: 2.2;
         }
         
-        .coming-soon {
+        .cta {
             text-align: center;
-            padding: 40px 20px;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-        }
-        
-        .coming-soon h3 {
-            font-size: 18px;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        
-        .coming-soon p {
-            color: #999;
-            font-size: 14px;
+            font-size: 24px;
+            margin: 60px 0;
+            letter-spacing: 4px;
         }
         
         footer {
             text-align: center;
             padding: 40px 20px;
-            color: #666;
-            font-size: 12px;
-            border-top: 1px solid #222;
+            color: #0a0;
+            font-size: 11px;
+            border-top: 1px solid #0f0;
+            letter-spacing: 2px;
         }
         
         @media (max-width: 640px) {
             h1 {
                 font-size: 36px;
+                letter-spacing: 4px;
             }
             
-            .tagline {
-                font-size: 16px;
+            .logo {
+                font-size: 80px;
             }
             
-            .manifesto {
+            .ticker {
+                font-size: 32px;
+            }
+            
+            .destination {
+                font-size: 24px;
+            }
+            
+            .info-block, .manifesto {
                 padding: 24px;
             }
         }
@@ -155,58 +191,71 @@
 <body>
     <div class="container">
         <header>
+            <div class="logo">⟁</div>
             <h1>MICO</h1>
-            <p class="tagline">Market Intelligence & Crypto Observation</p>
+            <p class="tagline">MARKET INTELLIGENCE & CRYPTO OBSERVATION</p>
         </header>
         
+        <div class="nav-links">
+            <a href="https://x.com/search?q=%24MICO" target="_blank">X</a>
+            <a href="https://t.me/MICOGuardians" target="_blank">TG</a>
+            <a href="https://heyanon-platform.onrender.com/" target="_blank">DASHBOARD</a>
+            <a href="https://dexscreener.com/solana/mico" target="_blank">CHART</a>
+        </div>
+        
         <main>
+            <div class="info-block">
+                <h2>ticker ::</h2>
+                <div class="ticker">$MICO</div>
+                
+                <h2>contract_address ::</h2>
+                <div class="contract">TBA_COMING_SOON</div>
+                
+                <div class="destination">&gt;&gt; destination:: MARKET TRUTH</div>
+                
+                <p style="margin-top: 40px;">
+                    technical/signal/intelligence_evolution
+                </p>
+            </div>
+            
             <div class="manifesto">
-                <h2>Our Manifesto</h2>
+                <h3>&gt; THE MANIFESTO</h3>
                 <p>
-                    <strong>MICO</strong> is an independent market intelligence platform built for the crypto community. 
-                    We provide real-time technical signals, regime analysis, and actionable insights for Bitcoin, Solana, and emerging assets.
+                    &gt; MICO is an independent market intelligence platform built for the crypto community.
                 </p>
                 <p>
-                    We believe in transparency, on-chain verification, and empowering traders with quality data—no noise, no hype, just signals.
+                    &gt; We provide real-time technical signals, regime analysis, and actionable insights for Bitcoin, Solana, and emerging assets.
                 </p>
                 <p>
-                    <strong>Important:</strong> MICO ($MICO) is completely independent and unaffiliated with Microsoft Corporation. 
-                    All information provided is for educational and informational purposes only. Always verify data on-chain and never trust unsolicited DMs.
+                    &gt; We believe in transparency, on-chain verification, and empowering traders with quality data—no noise, no hype, just signals.
+                </p>
+                <p>
+                    &gt; <strong>IMPORTANT:</strong> MICO ($MICO) is completely independent and unaffiliated with Microsoft Corporation.
+                </p>
+                <p>
+                    &gt; All information provided is for educational and informational purposes only. Always verify data on-chain and never trust unsolicited DMs.
                 </p>
             </div>
             
-            <div class="links">
-                <a href="https://heyanon-platform.onrender.com/" class="link-card" target="_blank" rel="noopener">
-                    <h3>📊 Live Signals Dashboard</h3>
-                    <p>Real-time market signals for BTC, SOL, and PUMP with technical indicators and regime analysis</p>
-                </a>
-                
-                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-btc" class="link-card" target="_blank" rel="noopener">
-                    <h3>📈 BTC Strategy Details</h3>
-                    <p>Detailed evaluation history and zone analysis for Bitcoin</p>
-                </a>
-                
-                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-sol" class="link-card" target="_blank" rel="noopener">
-                    <h3>🟣 SOL Strategy Details</h3>
-                    <p>Detailed evaluation history and zone analysis for Solana</p>
-                </a>
-                
-                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-pump" class="link-card" target="_blank" rel="noopener">
-                    <h3>🚀 PUMP Strategy Details</h3>
-                    <p>Detailed evaluation history and zone analysis for PUMP</p>
-                </a>
+            <div class="cta">
+                <p>&gt;&gt; LIVE SIGNALS DASHBOARD &lt;&lt;</p>
+                <p style="margin-top: 20px; font-size: 16px;">
+                    <a href="https://heyanon-platform.onrender.com/" style="color: #0f0; text-decoration: none; border: 2px solid #0f0; padding: 15px 30px; display: inline-block; margin-top: 20px; transition: all 0.3s;" onmouseover="this.style.background='#0f0'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='#0f0';">ENTER DASHBOARD</a>
+                </p>
             </div>
             
-            <div class="coming-soon">
-                <h3>More Coming Soon</h3>
-                <p>Advanced features, portfolio tracking, and community tools are in development.</p>
+            <div class="nav-links" style="margin-top: 60px;">
+                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-btc" target="_blank">BTC SIGNALS</a>
+                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-sol" target="_blank">SOL SIGNALS</a>
+                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-pump" target="_blank">PUMP SIGNALS</a>
             </div>
         </main>
     </div>
     
     <footer>
-        <p>&copy; 2025 MICO. Independent and unaffiliated with Microsoft Corporation.</p>
-        <p>For informational purposes only. Not financial advice. Verify all data on-chain.</p>
+        <p>&gt;&gt; 2025 MICO. INDEPENDENT AND UNAFFILIATED WITH MICROSOFT CORPORATION.</p>
+        <p>&gt;&gt; FOR INFORMATIONAL PURPOSES ONLY. NOT FINANCIAL ADVICE. VERIFY ALL DATA ON-CHAIN.</p>
+        <p style="margin-top: 20px;">[$MICO] [$MICO] [$MICO]</p>
     </footer>
 </body>
 </html>
