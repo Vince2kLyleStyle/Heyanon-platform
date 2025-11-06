@@ -115,27 +115,57 @@
             margin: 0 auto 40px;
             position: relative;
             animation: float-hero 4s ease-in-out infinite;
-            background: url('https://raw.githubusercontent.com/microsoft/CopilotAdventures/main/Images/Mico/mico-hero.png') no-repeat center center;
-            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        /* Fallback - MICO with glowing effect */
-        .mico-hero::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        /* Create MICO with CSS */
+        .mico-orb {
             width: 280px;
             height: 280px;
-            background: radial-gradient(circle, 
-                rgba(255, 229, 180, 1) 0%,
-                rgba(255, 204, 203, 1) 50%,
-                transparent 70%);
+            background: linear-gradient(135deg, #ffe5b4 0%, #ffcccb 100%);
             border-radius: 50%;
-            z-index: -1;
-            filter: blur(20px);
-            animation: pulse-glow 4s ease-in-out infinite;
+            position: relative;
+            box-shadow: 0 0 80px rgba(255, 182, 193, 0.8),
+                        0 0 120px rgba(255, 182, 193, 0.6),
+                        inset 0 -30px 60px rgba(255, 150, 170, 0.3);
+        }
+        
+        .mico-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .mico-eyes {
+            position: absolute;
+            display: flex;
+            gap: 30px;
+            top: 45%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .mico-eye {
+            width: 16px;
+            height: 22px;
+            background: #000;
+            border-radius: 50%;
+        }
+        
+        .mico-mouth {
+            position: absolute;
+            width: 55px;
+            height: 28px;
+            border: 4px solid #000;
+            border-top: none;
+            border-radius: 0 0 55px 55px;
+            top: 58%;
+            left: 50%;
+            transform: translateX(-50%);
         }
         
         @keyframes float-hero {
@@ -143,17 +173,75 @@
             50% { transform: translateY(-20px); }
         }
         
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
+        /* Cyberpunk info section */
+        .cyber-info {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 50px 40px;
+            margin: 80px auto 40px;
+            max-width: 700px;
+            font-family: 'Courier New', monospace;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
         
-        .mico-hero img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 0 60px rgba(255, 182, 193, 0.8))
-                    drop-shadow(0 0 100px rgba(255, 182, 193, 0.6));
+        .cyber-info h3 {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .cyber-info .value {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #fff;
+            letter-spacing: 4px;
+        }
+        
+        .cyber-info .contract-value {
+            font-size: 14px;
+            word-break: break-all;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .cyber-info .destination {
+            font-size: 28px;
+            margin: 40px 0 30px;
+            color: #fff;
+            letter-spacing: 3px;
+        }
+        
+        .cyber-info .tagline-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 1px;
+        }
+        
+        .cyber-links {
+            text-align: center;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+        }
+        
+        .cyber-links a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            margin: 0 8px;
+            transition: color 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 2px;
+        }
+        
+        .cyber-links a:hover {
+            color: #fff;
+            border-bottom-color: #fff;
         }
         
         .hero p {
@@ -331,13 +419,15 @@
         
         /* Contract section */
         .contract-section {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             padding: 40px;
-            border-radius: 8px;
+            border-radius: 0;
             text-align: center;
             margin: 60px auto;
             max-width: 800px;
+            font-family: 'Courier New', monospace;
+            backdrop-filter: blur(20px);
         }
         
         .contract-label {
@@ -371,6 +461,7 @@
             gap: 40px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+            font-family: 'Courier New', monospace;
         }
         
         .footer-links a {
@@ -416,7 +507,15 @@
     <section class="hero">
         <div class="hero-content">
             <div class="mico-hero">
-                <img src="https://i.imgur.com/8X9vK7p.png" alt="MICO" onerror="this.style.display='none'">
+                <div class="mico-orb">
+                    <div class="mico-face">
+                        <div class="mico-eyes">
+                            <div class="mico-eye"></div>
+                            <div class="mico-eye"></div>
+                        </div>
+                        <div class="mico-mouth"></div>
+                    </div>
+                </div>
             </div>
             
             <h1>MICO</h1>
@@ -425,6 +524,32 @@
             <div class="cta-buttons">
                 <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" class="btn btn-primary" target="_blank">Buy $MICO</a>
                 <a href="#manifesto" class="btn btn-secondary">Learn More</a>
+            </div>
+            
+            <!-- Cyberpunk Info Section -->
+            <div class="cyber-info">
+                <div class="cyber-links">
+                    &gt; <a href="https://x.com/mico_on_sol" target="_blank">X</a> / 
+                    <a href="https://discord.gg/u5eXg4GHQ" target="_blank">DISCORD</a> / 
+                    <a href="https://x.com/i/communities/1980760517355663524" target="_blank">COMMUNITY</a> / 
+                    <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" target="_blank">CHART</a>
+                </div>
+                
+                <h3>&gt; ticker ::</h3>
+                <div class="value">$MICO</div>
+                
+                <h3>&gt; contract_address ::</h3>
+                <div class="contract-value">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
+                
+                <div class="destination">&gt;&gt; destination:: HUMAN-AI ALIGNMENT</div>
+                
+                <div class="tagline-text">co-creation / intelligence / companion_evolution</div>
+                
+                <div class="cyber-links" style="margin-top: 40px;">
+                    <a href="https://x.com/mico_on_sol" target="_blank">[$MICO]</a>
+                    <a href="https://x.com/mico_on_sol" target="_blank">[$MICO]</a>
+                    <a href="https://x.com/mico_on_sol" target="_blank">[$MICO]</a>
+                </div>
             </div>
         </div>
         
@@ -485,12 +610,17 @@
     </section>
     
     
-    <!-- Manifesto Section -->
+    <!-- Contract Section -->
     <section class="section">
         <div class="container">
             <div class="contract-section">
-                <div class="contract-label">Contract Address</div>
-                <div class="contract-address">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
+                <p style="margin-bottom: 30px; font-size: 18px; color: rgba(255, 255, 255, 0.8);">
+                    &gt;&gt; Clippy walked so Mico could run &lt;&lt;
+                </p>
+                <p style="margin-bottom: 20px; color: rgba(255, 255, 255, 0.9);">
+                    Many more updates and utility to come.<br>
+                    Join our community to stay connected.
+                </p>
             </div>
         </div>
     </section>
@@ -498,14 +628,14 @@
     <!-- Footer -->
     <footer>
         <div class="footer-links">
-            <a href="https://x.com/mico_on_sol" target="_blank">Twitter</a>
+            <a href="https://x.com/mico_on_sol" target="_blank">X</a>
             <a href="https://discord.gg/u5eXg4GHQ" target="_blank">Discord</a>
             <a href="https://x.com/i/communities/1980760517355663524" target="_blank">Community</a>
             <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" target="_blank">Chart</a>
         </div>
-        <div class="footer-note">
-            <p>© 2025 $MICO. Independent and unaffiliated with Microsoft Corporation.</p>
-            <p>This is a memecoin for cultural movement. Always DYOR.</p>
+        <div class="footer-note" style="font-family: 'Courier New', monospace;">
+            <p>&gt; © 2025 $MICO. Independent and unaffiliated with Microsoft Corporation.</p>
+            <p>&gt; This is a memecoin for cultural movement. Always DYOR.</p>
         </div>
     </footer>
     
