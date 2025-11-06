@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$MICO - Market Intelligence & Crypto Observation</title>
+    <title>$MICO - Your Friendly AI Companion on Solana</title>
     <style>
         * {
             margin: 0;
@@ -12,288 +12,329 @@
         }
         
         body {
-            font-family: 'Courier New', monospace;
-            background: #000;
-            color: #0f0;
-            line-height: 1.8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: #fff;
+            line-height: 1.6;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Animated background orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+            animation: float-orb 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .orb1 { width: 300px; height: 300px; background: #ff6ec4; top: 10%; left: 10%; animation-delay: 0s; }
+        .orb2 { width: 250px; height: 250px; background: #7873f5; top: 60%; right: 10%; animation-delay: 5s; }
+        .orb3 { width: 200px; height: 200px; background: #4facfe; bottom: 10%; left: 50%; animation-delay: 10s; }
+        
+        @keyframes float-orb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-50px, 50px) scale(0.9); }
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 60px 20px;
-            flex: 1;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
         }
         
         header {
             text-align: center;
-            margin-bottom: 80px;
-            padding-top: 40px;
+            padding: 60px 20px;
         }
         
-        .logo {
-            font-size: 120px;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.8));
-        }
-        
-        .mico-character {
-            width: 200px;
-            height: 200px;
+        .mico-main {
+            width: 280px;
+            height: 280px;
             margin: 0 auto 30px;
-            display: block;
-            filter: drop-shadow(0 0 30px rgba(255, 100, 200, 0.8));
-            animation: float 3s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6));
+            animation: float-main 4s ease-in-out infinite;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 209, 220, 0.8) 100%);
+            border-radius: 50%;
+            font-size: 120px;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+        .mico-main:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        @keyframes float-main {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(5deg); }
+        }
+        
+        /* Flying MICO characters */
+        .mico-flying {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 209, 220, 0.6) 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.7;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .mico-1 { animation: fly-1 15s linear infinite; }
+        .mico-2 { animation: fly-2 20s linear infinite; animation-delay: 5s; }
+        .mico-3 { animation: fly-3 18s linear infinite; animation-delay: 10s; }
+        
+        @keyframes fly-1 {
+            0% { left: -100px; top: 20%; transform: translateY(0) rotate(0deg); }
+            50% { left: 50%; top: 30%; transform: translateY(-50px) rotate(180deg); }
+            100% { left: 110%; top: 25%; transform: translateY(0) rotate(360deg); }
+        }
+        
+        @keyframes fly-2 {
+            0% { right: -100px; top: 60%; transform: translateY(0) rotate(0deg); }
+            50% { right: 50%; top: 50%; transform: translateY(30px) rotate(-180deg); }
+            100% { right: 110%; top: 55%; transform: translateY(0) rotate(-360deg); }
+        }
+        
+        @keyframes fly-3 {
+            0% { left: -100px; bottom: 20%; transform: translateY(0) rotate(0deg); }
+            50% { left: 40%; bottom: 30%; transform: translateY(-40px) rotate(180deg); }
+            100% { left: 110%; bottom: 15%; transform: translateY(0) rotate(360deg); }
         }
         
         h1 {
-            font-size: 64px;
-            font-weight: 700;
-            letter-spacing: 8px;
+            font-size: 72px;
+            font-weight: 800;
             margin-bottom: 20px;
-            color: #0f0;
-            text-transform: uppercase;
+            background: linear-gradient(45deg, #fff, #ffd1dc, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
         }
         
         .tagline {
-            font-size: 18px;
-            color: #0a0;
-            font-weight: 400;
-            letter-spacing: 2px;
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.9);
         }
         
         .nav-links {
             text-align: center;
-            margin-bottom: 60px;
-            font-size: 16px;
-            letter-spacing: 1px;
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
         
         .nav-links a {
-            color: #0f0;
+            color: #fff;
             text-decoration: none;
-            padding: 0 15px;
-            border-right: 1px solid #0f0;
-            transition: all 0.3s;
-        }
-        
-        .nav-links a:last-child {
-            border-right: none;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
         }
         
         .nav-links a:hover {
-            color: #fff;
-            text-shadow: 0 0 10px #0f0;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
         }
         
-        .nav-links a[onclick] {
-            cursor: pointer;
-        }
-        
-        .info-block {
-            background: rgba(0, 255, 0, 0.05);
-            border: 2px solid #0f0;
-            padding: 40px;
-            margin-bottom: 60px;
+        .about {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 60px;
+            margin: 60px auto;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
         
-        .info-block h2 {
-            font-size: 20px;
-            margin-bottom: 20px;
-            letter-spacing: 4px;
-            color: #0f0;
-        }
-        
-        .info-block p {
-            font-size: 16px;
-            margin-bottom: 20px;
-            line-height: 2;
-            color: #0d0;
-        }
-        
-        .ticker {
+        .about h2 {
             font-size: 48px;
-            font-weight: bold;
-            margin: 20px 0;
-            letter-spacing: 8px;
-        }
-        
-        .contract {
-            font-size: 12px;
-            word-break: break-all;
-            color: #0a0;
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #0f0;
-        }
-        
-        .destination {
-            font-size: 32px;
-            margin: 40px 0;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
-        
-        .manifesto {
-            text-align: left;
-            padding: 40px;
-            border: 2px solid #0f0;
-            background: rgba(0, 255, 0, 0.03);
-            margin-bottom: 60px;
-        }
-        
-        .manifesto h3 {
-            font-size: 18px;
             margin-bottom: 30px;
-            letter-spacing: 3px;
-            color: #0f0;
         }
         
-        .manifesto p {
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 2.2;
+        .about p {
+            font-size: 20px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.95);
         }
         
-        .cta {
+        .about .emoji {
+            font-size: 40px;
+            margin: 20px 0;
+        }
+        
+        .contract-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 40px 0;
             text-align: center;
-            font-size: 24px;
+        }
+        
+        .contract-box h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #ffd1dc;
+        }
+        
+        .contract-address {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            color: #fff;
+        }
+        
+        .cta-section {
+            text-align: center;
             margin: 60px 0;
-            letter-spacing: 4px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 20px 50px;
+            background: linear-gradient(45deg, #ff6ec4, #7873f5);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 20px 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(120, 115, 245, 0.5);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 50px rgba(120, 115, 245, 0.7);
         }
         
         footer {
             text-align: center;
             padding: 40px 20px;
-            color: #0a0;
-            font-size: 11px;
-            border-top: 1px solid #0f0;
-            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
         }
         
-        @media (max-width: 640px) {
-            h1 {
-                font-size: 36px;
-                letter-spacing: 4px;
-            }
-            
-            .logo {
-                font-size: 80px;
-            }
-            
-            .ticker {
-                font-size: 32px;
-            }
-            
-            .destination {
-                font-size: 24px;
-            }
-            
-            .info-block, .manifesto {
-                padding: 24px;
-            }
+        footer p {
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 48px; }
+            .tagline { font-size: 18px; }
+            .mico-main { width: 200px; height: 200px; font-size: 80px; }
+            .about { padding: 40px 30px; }
+            .about h2 { font-size: 36px; }
+            .about p { font-size: 18px; }
+            .nav-links { gap: 15px; }
+            .nav-links a { padding: 12px 24px; font-size: 14px; }
+            .mico-flying { width: 60px; height: 60px; font-size: 30px; }
         }
     </style>
 </head>
 <body>
+    <!-- Animated background orbs -->
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    
+    <!-- Flying MICO characters -->
+    <div class="mico-flying mico-1">🤖</div>
+    <div class="mico-flying mico-2">✨</div>
+    <div class="mico-flying mico-3">🤖</div>
+    
     <div class="container">
         <header>
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="MICO Character" class="mico-character" id="micoChar">
-            <div class="logo">⟁</div>
-            <h1>MICO</h1>
-            <p class="tagline">MARKET INTELLIGENCE & CRYPTO OBSERVATION</p>
+            <!-- Main MICO character -->
+            <div class="mico-main" id="micoMain">🤖</div>
+            
+            <h1>$MICO</h1>
+            <p class="tagline">Your Friendly AI Companion on Solana 🤖✨</p>
         </header>
         
         <div class="nav-links">
-            <a href="https://x.com/mico_on_sol" target="_blank">X</a>
-            <a href="https://discord.gg/u5eXg4GHQ" target="_blank">DISCORD</a>
-            <a href="https://x.com/i/communities/1980760517355663524" target="_blank">COMMUNITY</a>
-            <a href="#" onclick="alert('🔒 DASHBOARD ACCESS COMING SOON\n\nStay tuned for the reveal...'); return false;">DASHBOARD</a>
-            <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" target="_blank">CHART</a>
+            <a href="https://x.com/mico_on_sol" target="_blank">🐦 Twitter</a>
+            <a href="https://discord.gg/u5eXg4GHQ" target="_blank">💬 Discord</a>
+            <a href="https://x.com/i/communities/1980760517355663524" target="_blank">👥 Community</a>
+            <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" target="_blank">📊 Chart</a>
         </div>
         
         <main>
-            <div class="info-block">
-                <h2>ticker ::</h2>
-                <div class="ticker">$MICO</div>
-                
-                <h2>contract_address ::</h2>
-                <div class="contract" style="font-size: 12px; word-break: break-all;">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
-                
-                <div class="destination">&gt;&gt; destination:: MARKET TRUTH</div>
-                
-                <p style="margin-top: 40px;">
-                    technical/signal/intelligence_evolution
+            <div class="about">
+                <h2>Meet MICO! 🌟</h2>
+                <div class="emoji">👋</div>
+                <p>
+                    MICO is your cute AI companion living on the Solana blockchain! 
+                    Just like Microsoft's Copilot helper, but way more fun and ready to go to the moon! 🚀
                 </p>
+                <p>
+                    Friendly • Helpful • Always vibing • Community-driven
+                </p>
+                <div class="emoji">💜✨🤖</div>
             </div>
             
-            <div class="manifesto">
-                <h3>&gt; THE MANIFESTO</h3>
-                <p>
-                    &gt; MICO is an independent market intelligence platform built for the crypto community.
-                </p>
-                <p>
-                    &gt; We provide real-time technical signals, regime analysis, and actionable insights for Bitcoin, Solana, and emerging assets.
-                </p>
-                <p>
-                    &gt; We believe in transparency, on-chain verification, and empowering traders with quality data—no noise, no hype, just signals.
-                </p>
-                <p>
-                    &gt; <strong>IMPORTANT:</strong> MICO ($MICO) is completely independent and unaffiliated with Microsoft Corporation.
-                </p>
-                <p>
-                    &gt; All information provided is for educational and informational purposes only. Always verify data on-chain and never trust unsolicited DMs.
-                </p>
-                <p style="margin-top: 40px; color: #0f0; font-size: 16px; letter-spacing: 2px;">
-                    &gt;&gt; SIGNALS DASHBOARD LAUNCHING SOON &lt;&lt;
-                </p>
+            <div class="contract-box">
+                <h3>📝 Contract Address</h3>
+                <div class="contract-address">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
             </div>
             
-            <div class="cta">
-                <p>&gt;&gt; MARKET INTELLIGENCE INCOMING &lt;&lt;</p>
-                <p style="margin-top: 20px; font-size: 14px; color: #0a0;">
-                    Real-time signals for BTC • SOL • PUMP<br>
-                    Technical indicators • Regime analysis • Zone mapping<br><br>
-                    <span style="color: #0f0; font-size: 18px; letter-spacing: 4px;">⟁ ACCESS UNLOCKS SOON ⟁</span>
-                </p>
-            </div>
-            
-            <div class="nav-links" style="margin-top: 60px; opacity: 0.5;">
-                <span style="cursor: not-allowed; padding: 0 15px; border-right: 1px solid #0f0;">BTC SIGNALS [LOCKED]</span>
-                <span style="cursor: not-allowed; padding: 0 15px; border-right: 1px solid #0f0;">SOL SIGNALS [LOCKED]</span>
-                <span style="cursor: not-allowed; padding: 0 15px;">PUMP SIGNALS [LOCKED]</span>
+            <div class="cta-section">
+                <p style="font-size: 24px; margin-bottom: 30px;">Ready to vibe with MICO?</p>
+                <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" class="cta-button" target="_blank">Buy $MICO</a>
+                <a href="https://discord.gg/u5eXg4GHQ" class="cta-button" target="_blank">Join Community</a>
             </div>
         </main>
     </div>
     
     <footer>
-        <p>&gt;&gt; 2025 MICO. INDEPENDENT AND UNAFFILIATED WITH MICROSOFT CORPORATION.</p>
-        <p>&gt;&gt; FOR INFORMATIONAL PURPOSES ONLY. NOT FINANCIAL ADVICE. VERIFY ALL DATA ON-CHAIN.</p>
-        <p style="margin-top: 20px;">[$MICO] [$MICO] [$MICO]</p>
+        <p>© 2025 $MICO. Independent and unaffiliated with Microsoft Corporation.</p>
+        <p>This is a meme coin for entertainment purposes. Always DYOR! 🌙</p>
     </footer>
     
     <script>
-        // Load MICO character image
-        // Since we can't embed the actual image file, you'll need to:
-        // 1. Save the MICO character screenshot as 'mico-character.png' in the same folder as this HTML
-        // 2. Or upload it to an image hosting service and replace the src below
-        const micoImg = document.getElementById('micoChar');
-        micoImg.src = 'mico-character.png'; // Change this to your hosted image URL if needed
-        micoImg.onerror = function() {
-            // If image fails to load, hide it gracefully
-            this.style.display = 'none';
-        };
+        // Add sparkle effect when clicking MICO
+        document.getElementById('micoMain').addEventListener('click', function() {
+            this.style.transform = 'scale(1.2) rotate(360deg)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 500);
+        });
     </script>
 </body>
 </html>
