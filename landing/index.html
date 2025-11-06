@@ -108,11 +108,11 @@
             padding: 0 20px;
         }
         
-        /* MICO character */
+        /* MICO character - placeholder for real image */
         .mico-hero {
-            width: 350px;
-            height: 350px;
-            margin: 0 auto 40px;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 50px;
             position: relative;
             animation: float-hero 4s ease-in-out infinite;
             display: flex;
@@ -120,52 +120,27 @@
             justify-content: center;
         }
         
-        /* Create MICO with CSS */
-        .mico-orb {
-            width: 280px;
-            height: 280px;
-            background: linear-gradient(135deg, #ffe5b4 0%, #ffcccb 100%);
-            border-radius: 50%;
-            position: relative;
-            box-shadow: 0 0 80px rgba(255, 182, 193, 0.8),
-                        0 0 120px rgba(255, 182, 193, 0.6),
-                        inset 0 -30px 60px rgba(255, 150, 170, 0.3);
-        }
-        
-        .mico-face {
-            position: absolute;
+        .mico-hero img {
             width: 100%;
             height: 100%;
-            top: 0;
-            left: 0;
+            object-fit: contain;
+            filter: drop-shadow(0 0 60px rgba(255, 182, 193, 0.8))
+                    drop-shadow(0 0 100px rgba(255, 182, 193, 0.6));
         }
         
-        .mico-eyes {
-            position: absolute;
-            display: flex;
-            gap: 30px;
-            top: 45%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .mico-eye {
-            width: 16px;
-            height: 22px;
-            background: #000;
+        /* Fallback if image doesn't load */
+        .mico-placeholder {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 229, 180, 1) 0%, rgba(255, 204, 203, 1) 50%, rgba(255, 182, 193, 0.9) 100%);
             border-radius: 50%;
-        }
-        
-        .mico-mouth {
-            position: absolute;
-            width: 55px;
-            height: 28px;
-            border: 4px solid #000;
-            border-top: none;
-            border-radius: 0 0 55px 55px;
-            top: 58%;
-            left: 50%;
-            transform: translateX(-50%);
+            box-shadow: 0 0 80px rgba(255, 182, 193, 0.8),
+                        0 0 120px rgba(255, 182, 193, 0.6),
+                        inset 0 -40px 80px rgba(255, 150, 170, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
         }
         
         @keyframes float-hero {
@@ -175,68 +150,69 @@
         
         /* Cyberpunk info section */
         .cyber-info {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            padding: 50px 40px;
-            margin: 80px auto 40px;
-            max-width: 700px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            margin: 60px auto 0;
+            max-width: 650px;
             font-family: 'Courier New', monospace;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(30px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
         
         .cyber-info h3 {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            letter-spacing: 1.5px;
+            font-weight: 400;
         }
         
         .cyber-info .value {
-            font-size: 42px;
+            font-size: 36px;
             font-weight: 700;
-            margin-bottom: 40px;
-            color: #fff;
-            letter-spacing: 4px;
-        }
-        
-        .cyber-info .contract-value {
-            font-size: 14px;
-            word-break: break-all;
-            color: rgba(255, 255, 255, 0.9);
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .cyber-info .destination {
-            font-size: 28px;
-            margin: 40px 0 30px;
+            margin-bottom: 30px;
             color: #fff;
             letter-spacing: 3px;
         }
         
+        .cyber-info .contract-value {
+            font-size: 13px;
+            word-break: break-all;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        .cyber-info .destination {
+            font-size: 22px;
+            margin: 30px 0 20px;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+        
         .cyber-info .tagline-text {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-            letter-spacing: 1px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.5px;
         }
         
         .cyber-links {
             text-align: center;
-            margin: 30px 0;
+            margin: 25px 0;
             font-family: 'Courier New', monospace;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         .cyber-links a {
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
-            margin: 0 8px;
+            margin: 0 6px;
             transition: color 0.3s;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 2px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            padding-bottom: 1px;
         }
         
         .cyber-links a:hover {
@@ -245,19 +221,20 @@
         }
         
         .hero p {
-            font-size: 20px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 40px;
-            line-height: 1.6;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 50px;
+            line-height: 1.5;
+            font-weight: 400;
         }
         
         
         .hero h1 {
-            font-size: 64px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            letter-spacing: -1px;
-            line-height: 1.1;
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            line-height: 1;
         }
         
         
@@ -346,43 +323,31 @@
         
         /* Manifesto section */
         .manifesto-content {
-            max-width: 800px;
+            max-width: 750px;
             margin: 0 auto;
-            font-size: 18px;
-            line-height: 1.8;
+            font-size: 17px;
+            line-height: 1.7;
             color: rgba(255, 255, 255, 0.9);
         }
         
         .manifesto-content h2 {
-            font-size: 36px;
-            margin: 60px 0 30px;
-            font-weight: 600;
-        }
-        
-        .manifesto-content h3 {
-            font-size: 28px;
-            margin: 40px 0 20px;
-            font-weight: 600;
+            font-size: 42px;
+            margin-bottom: 40px;
+            font-weight: 700;
+            text-align: center;
         }
         
         .manifesto-content p {
-            margin-bottom: 20px;
-        }
-        
-        .manifesto-content ul {
-            margin: 20px 0 20px 40px;
-        }
-        
-        .manifesto-content li {
-            margin-bottom: 10px;
+            margin-bottom: 18px;
         }
         
         .manifesto-content blockquote {
-            border-left: 4px solid rgba(255, 255, 255, 0.3);
-            padding-left: 30px;
-            margin: 40px 0;
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+            padding-left: 25px;
+            margin: 35px 0;
             font-style: italic;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 16px;
         }
         
         /* Values grid */
@@ -483,14 +448,18 @@
         
         /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 { font-size: 40px; }
-            .hero p { font-size: 18px; }
-            .section-title { font-size: 36px; }
+            .hero h1 { font-size: 52px; }
+            .hero p { font-size: 16px; }
+            .mico-hero { width: 220px; height: 220px; }
+            .mico-placeholder { width: 200px; height: 200px; font-size: 80px; }
+            .cyber-info { padding: 30px 25px; max-width: 90%; }
+            .cyber-info .value { font-size: 28px; }
+            .cyber-info .destination { font-size: 18px; }
+            .section-title { font-size: 32px; }
             .manifesto-content { font-size: 16px; }
-            .manifesto-content h2 { font-size: 28px; }
-            .manifesto-content h3 { font-size: 24px; }
+            .manifesto-content h2 { font-size: 32px; }
             .cta-buttons { flex-direction: column; align-items: center; }
-            .btn { width: 100%; max-width: 300px; text-align: center; }
+            .btn { width: 100%; max-width: 280px; text-align: center; }
         }
     </style>
 </head>
