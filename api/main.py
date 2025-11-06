@@ -2,8 +2,6 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from html import escape
 from fastapi.middleware.cors import CORSMiddleware
-import asyncio
-import contextlib
 import time
 import aiohttp
 from datetime import datetime, timezone
@@ -26,8 +24,6 @@ class Cache:
     status = "ok"  # ok | degraded | paused
     errors = 0
     regime = "Neutral"
-    # rolling history of last N evaluations per market
-    history: dict = {}
 
 
 cache = Cache()
@@ -36,83 +32,11 @@ cache = Cache()
 @app.on_event("startup")
 async def startup():
     app.state.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20))
-    # start background refresh loop
-    app.state.refresh_task = asyncio.create_task(_refresh_loop())
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    try:
-        task = getattr(app.state, "refresh_task", None)
-        if task:
-            task.cancel()
-            with contextlib.suppress(Exception):
-                await task
-    finally:
-        await app.state.session.close()
-
-
-def _append_history_from_snapshot(snapshot: dict, ts: int):
-    """Append one log entry per market into cache.history, keeping last 10."""
-    # ensure ts iso
-    iso_ts = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-    for market, signal in snapshot.items():
-        entry = {
-            "ts": iso_ts,
-            "event": "evaluation",
-            "market": market,
-            "note": f"score {signal.get('score', 0)} • label {signal.get('label', 'Observation')} • price ${signal.get('price', 0):.2f}",
-            "score": signal.get("score", 0),
-            "label": signal.get("label", "Observation"),
-            "price": signal.get("price", 0),
-            "level": "info",
-            "details": {
-                "sma20": signal.get("sma20", 0),
-                "sma50": signal.get("sma50", 0),
-                "rsi14": signal.get("rsi14", 50),
-                "atr14": signal.get("atr14", 0),
-                "vol_spike": signal.get("vol_spike", False),
-                "zones": signal.get("zones", {}),
-            },
-        }
-        hist = cache.history.get(market, [])
-        # dedupe consecutive identical label+score to avoid spam
-        if not hist or (hist[-1].get("label") != entry["label"] or hist[-1].get("score") != entry["score"]):
-            hist.append(entry)
-            # keep last 10
-            if len(hist) > 10:
-                hist = hist[-10:]
-            cache.history[market] = hist
-
-
-async def _refresh_once():
-    """Compute and cache signals, appending to history."""
-    now = time.time()
-    regime = await compute_regime(app.state.session)
-    signals_snapshot = await build_signals_snapshot(app.state.session, COINS, regime)
-    cache.ts = int(now)
-    cache.data = signals_snapshot
-    cache.regime = regime
-    cache.status = "ok"
-    cache.errors = 0
-    _append_history_from_snapshot(signals_snapshot, cache.ts)
-
-
-async def _refresh_loop():
-    """Background loop to refresh signals periodically."""
-    # small jitter to avoid thundering herd on container restarts
-    await asyncio.sleep(1.0)
-    while True:
-        try:
-            if not DISABLE_SIGNALS:
-                await _refresh_once()
-        except Exception as e:
-            cache.errors += 1
-            cache.status = "degraded"
-            print(f"[refresh_loop] Error: {e}")  # debug log
-        # refresh every TTL seconds (min 15s)
-        interval = max(15, int(CACHE_TTL_SEC))
-        await asyncio.sleep(interval)
+    await app.state.session.close()
 
 
 @app.get("/v1/signals")
@@ -133,12 +57,17 @@ async def signals():
             "status": cache.status,
         }
     try:
-        # on-demand refresh when stale
-        await _refresh_once()
+        regime = await compute_regime(app.state.session)
+        signals = await build_signals_snapshot(app.state.session, COINS, regime)
+        cache.ts = int(now)
+        cache.data = signals
+        cache.regime = regime
+        cache.status = "ok"
+        cache.errors = 0
         return {
             "last_updated": cache.ts,
-            "regime": cache.regime,
-            "signals": cache.data,
+            "regime": regime,
+            "signals": signals,
             "status": "ok",
         }
     except Exception as e:
@@ -164,10 +93,14 @@ async def summary():
             "errors": cache.errors,
         }
     try:
-        await _refresh_once()
+        regime = await compute_regime(app.state.session)
+        cache.regime = regime
+        cache.ts = int(now)
+        cache.status = "ok"
+        cache.errors = 0
         return {
             "updatedAt": cache.ts,
-            "regime": cache.regime,
+            "regime": regime,
             "status": "ok",
             "errors": 0,
         }
@@ -425,14 +358,44 @@ async def strategy_detail(strategy_id: str):
 async def strategy_logs(strategy_id: str, limit: int = 50):
     """Get strategy evaluation logs"""
     now = time.time()
-    # Ensure at least one refresh has happened
-    if not cache.data or now - cache.ts >= CACHE_TTL_SEC:
-        with contextlib.suppress(Exception):
-            await _refresh_once()
-
+    if cache.data and now - cache.ts < CACHE_TTL_SEC:
+        signals = cache.data
+    else:
+        try:
+            regime = await compute_regime(app.state.session)
+            signals = await build_signals_snapshot(app.state.session, COINS, regime)
+            cache.ts = int(now)
+            cache.data = signals
+            cache.regime = regime
+            cache.status = "ok"
+        except Exception:
+            signals = cache.data or {}
+    
     # Extract market from strategy_id
     market = strategy_id.replace("signals-", "").upper()
-    hist = cache.history.get(market, [])
-    if limit and isinstance(limit, int) and limit > 0:
-        return hist[-limit:]
-    return hist
+    signal = signals.get(market, {})
+    
+    from datetime import datetime, timezone
+    timestamp_iso = datetime.fromtimestamp(cache.ts or now, tz=timezone.utc).isoformat() if cache.ts else datetime.now(timezone.utc).isoformat()
+    
+    # Return current signal as a log entry with ISO timestamp
+    log_entry = {
+        "ts": timestamp_iso,
+        "event": "evaluation",
+        "market": market,
+        "note": f"score {signal.get('score', 0)} • label {signal.get('label', 'Observation')} • price ${signal.get('price', 0):.2f}",
+        "score": signal.get("score", 0),
+        "label": signal.get("label", "Observation"),
+        "price": signal.get("price", 0),
+        "level": "info",
+        "details": {
+            "sma20": signal.get("sma20", 0),
+            "sma50": signal.get("sma50", 0),
+            "rsi14": signal.get("rsi14", 50),
+            "atr14": signal.get("atr14", 0),
+            "vol_spike": signal.get("vol_spike", False),
+            "zones": signal.get("zones", {}),
+        }
+    }
+    
+    return [log_entry]
