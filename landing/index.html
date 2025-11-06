@@ -41,6 +41,20 @@
             filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.8));
         }
         
+        .mico-character {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            display: block;
+            filter: drop-shadow(0 0 30px rgba(255, 100, 200, 0.8));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
         h1 {
             font-size: 64px;
             font-weight: 700;
@@ -79,6 +93,10 @@
         .nav-links a:hover {
             color: #fff;
             text-shadow: 0 0 10px #0f0;
+        }
+        
+        .nav-links a[onclick] {
+            cursor: pointer;
         }
         
         .info-block {
@@ -191,16 +209,18 @@
 <body>
     <div class="container">
         <header>
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="MICO Character" class="mico-character" id="micoChar">
             <div class="logo">⟁</div>
             <h1>MICO</h1>
             <p class="tagline">MARKET INTELLIGENCE & CRYPTO OBSERVATION</p>
         </header>
         
         <div class="nav-links">
-            <a href="https://x.com/search?q=%24MICO" target="_blank">X</a>
-            <a href="https://t.me/MICOGuardians" target="_blank">TG</a>
-            <a href="https://heyanon-platform.onrender.com/" target="_blank">DASHBOARD</a>
-            <a href="https://dexscreener.com/solana/mico" target="_blank">CHART</a>
+            <a href="https://x.com/mico_on_sol" target="_blank">X</a>
+            <a href="https://discord.gg/u5eXg4GHQ" target="_blank">DISCORD</a>
+            <a href="https://x.com/i/communities/1980760517355663524" target="_blank">COMMUNITY</a>
+            <a href="#" onclick="alert('🔒 DASHBOARD ACCESS COMING SOON\n\nStay tuned for the reveal...'); return false;">DASHBOARD</a>
+            <a href="https://dexscreener.com/solana/5iy2wwthqzj9sebc6rtdbvgarjbag3mgnicv1jbqjnsb" target="_blank">CHART</a>
         </div>
         
         <main>
@@ -209,7 +229,7 @@
                 <div class="ticker">$MICO</div>
                 
                 <h2>contract_address ::</h2>
-                <div class="contract">TBA_COMING_SOON</div>
+                <div class="contract" style="font-size: 12px; word-break: break-all;">5iY2wwtHqZJ9SEBC6rTdbVGaRjbAG3mGnicV1jbQjnsb</div>
                 
                 <div class="destination">&gt;&gt; destination:: MARKET TRUTH</div>
                 
@@ -235,19 +255,24 @@
                 <p>
                     &gt; All information provided is for educational and informational purposes only. Always verify data on-chain and never trust unsolicited DMs.
                 </p>
-            </div>
-            
-            <div class="cta">
-                <p>&gt;&gt; LIVE SIGNALS DASHBOARD &lt;&lt;</p>
-                <p style="margin-top: 20px; font-size: 16px;">
-                    <a href="https://heyanon-platform.onrender.com/" style="color: #0f0; text-decoration: none; border: 2px solid #0f0; padding: 15px 30px; display: inline-block; margin-top: 20px; transition: all 0.3s;" onmouseover="this.style.background='#0f0'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='#0f0';">ENTER DASHBOARD</a>
+                <p style="margin-top: 40px; color: #0f0; font-size: 16px; letter-spacing: 2px;">
+                    &gt;&gt; SIGNALS DASHBOARD LAUNCHING SOON &lt;&lt;
                 </p>
             </div>
             
-            <div class="nav-links" style="margin-top: 60px;">
-                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-btc" target="_blank">BTC SIGNALS</a>
-                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-sol" target="_blank">SOL SIGNALS</a>
-                <a href="https://heyanon-platform.onrender.com/view/strategies/signals-pump" target="_blank">PUMP SIGNALS</a>
+            <div class="cta">
+                <p>&gt;&gt; MARKET INTELLIGENCE INCOMING &lt;&lt;</p>
+                <p style="margin-top: 20px; font-size: 14px; color: #0a0;">
+                    Real-time signals for BTC • SOL • PUMP<br>
+                    Technical indicators • Regime analysis • Zone mapping<br><br>
+                    <span style="color: #0f0; font-size: 18px; letter-spacing: 4px;">⟁ ACCESS UNLOCKS SOON ⟁</span>
+                </p>
+            </div>
+            
+            <div class="nav-links" style="margin-top: 60px; opacity: 0.5;">
+                <span style="cursor: not-allowed; padding: 0 15px; border-right: 1px solid #0f0;">BTC SIGNALS [LOCKED]</span>
+                <span style="cursor: not-allowed; padding: 0 15px; border-right: 1px solid #0f0;">SOL SIGNALS [LOCKED]</span>
+                <span style="cursor: not-allowed; padding: 0 15px;">PUMP SIGNALS [LOCKED]</span>
             </div>
         </main>
     </div>
@@ -257,5 +282,18 @@
         <p>&gt;&gt; FOR INFORMATIONAL PURPOSES ONLY. NOT FINANCIAL ADVICE. VERIFY ALL DATA ON-CHAIN.</p>
         <p style="margin-top: 20px;">[$MICO] [$MICO] [$MICO]</p>
     </footer>
+    
+    <script>
+        // Load MICO character image
+        // Since we can't embed the actual image file, you'll need to:
+        // 1. Save the MICO character screenshot as 'mico-character.png' in the same folder as this HTML
+        // 2. Or upload it to an image hosting service and replace the src below
+        const micoImg = document.getElementById('micoChar');
+        micoImg.src = 'mico-character.png'; // Change this to your hosted image URL if needed
+        micoImg.onerror = function() {
+            // If image fails to load, hide it gracefully
+            this.style.display = 'none';
+        };
+    </script>
 </body>
 </html>
