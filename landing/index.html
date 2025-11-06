@@ -114,6 +114,44 @@
             padding: 32px 22px 28px 22px;
             border-radius: 22px;
             box-shadow: 0 10px 40px rgba(0,255,255,0.18), 0 2px 40px rgba(0,0,0,0.45);
+            transition: all 0.3s ease;
+        }
+        
+        .side-mico.minimized {
+            padding: 16px;
+            gap: 0;
+        }
+        
+        .side-mico.minimized iframe,
+        .side-mico.minimized > div {
+            display: none;
+        }
+        
+        .minimize-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,255,231,0.2);
+            border: 1px solid #00ffe7;
+            color: #00ffe7;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .minimize-btn:hover {
+            background: rgba(0,255,231,0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .minimize-btn { display: flex; }
         }
     .side-mico img { width: 144px; height: 144px; object-fit: contain; filter: drop-shadow(0 0 32px #00ffe7) drop-shadow(0 0 60px #4facfe); border-radius: 12px; }
         .side-mico .label {
@@ -296,6 +334,18 @@
             letter-spacing: 2px;
             line-height: 1;
             text-shadow: 0 6px 30px rgba(0,0,0,0.45);
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         
@@ -476,15 +526,49 @@
         
         /* Footer */
         footer {
-            padding: 120px 20px 80px;
+            padding: 160px 20px 100px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
-            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.5)), url('footer-bg.png');
+            background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.35)), url('footer-bg.png');
             background-size: cover;
             background-position: center bottom;
             background-repeat: no-repeat;
             position: relative;
-            min-height: 400px;
+            min-height: 500px;
+            overflow: hidden;
+        }
+        
+        /* Particle effect for footer */
+        .footer-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float-particle 15s infinite ease-in-out;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+        
+        @keyframes float-particle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-500px) translateX(50px); opacity: 0; }
+        }
+        
+        footer > * {
+            position: relative;
+            z-index: 2;
         }
         
         .footer-links {
@@ -656,6 +740,7 @@
     
     <!-- Footer -->
     <footer>
+        <div class="footer-particles" id="footerParticles"></div>
         <div class="footer-links">
             <a href="https://x.com/mico_on_sol" target="_blank">X</a>
             <a href="https://discord.gg/u5eXg4GHQ" target="_blank">Discord</a>
@@ -667,7 +752,8 @@
             <p>&gt; This is a memecoin for cultural movement. Always DYOR.</p>
         </div>
     </footer>
-    <div class="side-mico">
+    <div class="side-mico" id="sidePanel">
+        <button class="minimize-btn" id="minimizeBtn" onclick="togglePanel()">−</button>
         <iframe src="https://www.youtube.com/embed/iSm_lt1Cswc?autoplay=1&mute=1&controls=0&loop=1&playlist=iSm_lt1Cswc" title="MICO Video" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         <div>
             <div class="label">$MICO</div>
@@ -676,6 +762,31 @@
     </div>
     
     <script>
+        // Toggle side panel minimize
+        function togglePanel() {
+            const panel = document.getElementById('sidePanel');
+            const btn = document.getElementById('minimizeBtn');
+            panel.classList.toggle('minimized');
+            btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
+        }
+        
+        // Create footer particles
+        function createParticles() {
+            const container = document.getElementById('footerParticles');
+            const particleCount = 40;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+        
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
