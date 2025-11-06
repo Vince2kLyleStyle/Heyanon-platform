@@ -145,7 +145,7 @@
             opacity: 0.12;
             background-image: url('mico.png');
             background-size: cover;
-            background-position: center 18%;
+                background-position: center 6%;
             filter: blur(3px);
         }
         
@@ -158,6 +158,9 @@
             padding: 60px 20px;
             isolation: isolate; /* allow blend modes without affecting siblings */
         }
+            @media (min-width: 992px) {
+                .hero-content { transform: translateY(160px); }
+            }
         
         /* MICO character - placeholder for real image */
         .mico-hero {
@@ -268,7 +271,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.25);
             padding-bottom: 1px;
         }
-        
+            .side-mico iframe { width: 240px; height: 426px; border: 0; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .cyber-links a:hover {
             color: #fff;
             border-bottom-color: #fff;
@@ -651,7 +654,7 @@
         </div>
     </footer>
     <div class="side-mico">
-        <img src="corner-mico.png" alt="MICO">
+        <iframe src="https://www.youtube.com/embed/iSm_lt1Cswc?autoplay=1&mute=1&controls=0&loop=1&playlist=iSm_lt1Cswc" title="MICO Video" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         <div>
             <div class="label">$MICO</div>
             <div class="subtext">Human + AI empowerment.</div>
